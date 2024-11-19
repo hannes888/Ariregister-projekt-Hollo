@@ -52,6 +52,8 @@ def create_company():
         data = request.get_json()
         app.logger.debug(f"Received data: {data}")
 
+        # establishment_date = datetime.strptime(data['establishment_date'], '%Y-%m-%d').date()
+
         new_company = Company(
             name=data['name'],
             registration_code=data['registration_code'],
@@ -144,8 +146,8 @@ def create_company():
 
         return make_response(jsonify({'message': 'Company and shareholders created'}), 201)
     except Exception as e:
-        app.logger.error(f"Error creating company.html: {e}")
-        return make_response(jsonify({'message': 'Error creating company.html'}), 500)
+        app.logger.error(f"Error creating company: {e}")
+        return make_response(jsonify({'message': f'Error creating company {e}'}), 500)
 
 
 @app.route('/search', methods=['GET'])
