@@ -1,11 +1,51 @@
-from flask import request, jsonify, make_response, current_app as app
+from flask import request, jsonify, make_response, current_app as app, render_template
 from . import db
 from .models import Company, Individual, LegalEntity, Shareholder
 from .validators import validate_company_name, validate_registration_code, validate_establishment_date, \
     validate_total_capital
 
 
+# Default route
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
 # Company routes
+@app.route('/company/<str:company_reg_code>')
+def view_company(company_reg_code):
+    company = Company.query.get_or_404(company_reg_code)
+    shareholders = Shareholder.query.filter_by(company_registration_code=company_reg_code).all()
+
+    individual_shareholders = []
+    legal_entity_shareholders = []
+
+    for shareholder in shareholders:
+        if shareholder.individual_id:
+            individual = Individual.query.get(shareholder.individual_id)
+            individual_shareholders.append({
+                'first_name': individual.first_name,
+                'last_name': individual.last_name,
+                'personal_code': individual.personal_code,
+                'share_amount': shareholder.share_amount,
+                'is_founder': shareholder.is_founder
+            })
+        elif shareholder.legal_entity_id:
+            legal_entity = LegalEntity.query.get(shareholder.legal_entity_id)
+            legal_entity_shareholders.append({
+                'name': legal_entity.name,
+                'registration_code': legal_entity.registration_code,
+                'share_amount': shareholder.share_amount,
+                'is_founder': shareholder.is_founder
+            })
+
+    return render_template(
+        'company.html',
+        company=company,
+        individual_shareholders=individual_shareholders,
+        legal_entity_shareholders=legal_entity_shareholders
+    )
+
 
 @app.route('/company', methods=['POST'])
 def create_company():
@@ -22,13 +62,17 @@ def create_company():
 
         # Validate input data
         if not validate_company_name(new_company.name):
-            return make_response(jsonify({'message': 'Invalid company name'}), 400)
+            return make_response(jsonify({'message': 'Invalid company.html name'}), 400)
         if not validate_registration_code(new_company.registration_code):
             return make_response(jsonify({'message': 'Invalid registration code'}), 400)
         if not validate_establishment_date(new_company.establishment_date):
             return make_response(jsonify({'message': 'Invalid establishment date'}), 400)
         if not validate_total_capital(new_company.total_capital):
             return make_response(jsonify({'message': 'Invalid total capital'}), 400)
+        if Company.query.filter_by(registration_code=new_company.registration_code).first():
+            return make_response(jsonify({'message': 'Company with this registration code already exists'}), 400)
+        if Company.query.filter_by(name=new_company.name).first():
+            return make_response(jsonify({'message': 'Company with this name already exists'}), 400)
 
         db.session.add(new_company)
         db.session.commit()
@@ -71,21 +115,48 @@ def create_company():
         db.session.commit()
         return make_response(jsonify({'message': 'Company and shareholders created'}), 201)
     except Exception as e:
-        app.logger.error(f"Error creating company: {e}")
-        return make_response(jsonify({'message': 'Error creating company'}), 500)
+        app.logger.error(f"Error creating company.html: {e}")
+        return make_response(jsonify({'message': 'Error creating company.html'}), 500)
 
 
-@app.route('/company/<int:company_id>', methods=['GET'])
-def get_company(company_id):
-    company = Company.query.get(company_id)
-    if company:
-        return make_response(jsonify({
-            'name': company.name,
-            'registration_code': company.registration_code,
-            'establishment_date': company.establishment_date,
-            'total_capital': company.total_capital
-        }), 200)
-    return make_response(jsonify({'message': 'Company not found'}), 404)
+@app.route('/search', methods=['GET'])
+def search_companies():
+    try:
+        name = request.args.get('name')
+        registration_code = request.args.get('registration_code')
+        shareholder_name = request.args.get('shareholder_name')
+        shareholder_code = request.args.get('shareholder_code')
+
+        query = db.session.query(Company)
+
+        if name:
+            query = query.filter(Company.name.ilike(f'%{name}%'))
+        if registration_code:
+            query = query.filter(Company.registration_code.ilike(f'%{registration_code}%'))
+        if shareholder_name or shareholder_code:
+            query = query.join(Shareholder)
+            if shareholder_name:
+                query = query.join(Individual).filter(
+                    (Individual.first_name.ilike(f'%{shareholder_name}%')) |
+                    (Individual.last_name.ilike(f'%{shareholder_name}%'))
+                )
+            if shareholder_code:
+                query = query.join(Individual).filter(Individual.personal_code.ilike(f'%{shareholder_code}%'))
+
+        companies = query.all()
+
+        results = []
+        for company in companies:
+            results.append({
+                'name': company.name,
+                'registration_code': company.registration_code,
+                'id': company.id
+            })
+
+        return make_response(jsonify(results), 200)
+    except Exception as e:
+        app.logger.error(f"Error searching companies: {e}")
+        return make_response(jsonify({'message': 'Error searching companies'}), 500)
 
 
 @app.route('/legal-entity', methods=['POST'])

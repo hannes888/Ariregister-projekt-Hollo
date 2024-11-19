@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Details</title>
+</head>
+<body>
+    <h1>Company Details</h1>
+    <p>Name: {{ company.name }}</p>
+    <p>Registration Code: {{ company.registration_code }}</p>
+    <p>Establishment Date: {{ company.establishment_date }}</p>
+    <p>Total Capital: {{ company.total_capital }}</p>
+
+    <h2>Individual Shareholders</h2>
+    <ul>
+        {% for shareholder in individual_shareholders %}
+        <li>
+            <p>First Name: {{ shareholder.first_name }}</p>
+            <p>Last Name: {{ shareholder.last_name }}</p>
+            <p>Personal Code: {{ shareholder.personal_code }}</p>
+            <p>Share Amount: {{ shareholder.share_amount }}</p>
+            <p>Founder: {{ shareholder.is_founder }}</p>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Legal Entity Shareholders</h2>
+    <ul>
+        {% for shareholder in legal_entity_shareholders %}
+        <li>
+            <p>Name: {{ shareholder.name }}</p>
+            <p>Registration Code: {{ shareholder.registration_code }}</p>
+            <p>Share Amount: {{ shareholder.share_amount }}</p>
+            <p>Founder: {{ shareholder.is_founder }}</p>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
