@@ -8,15 +8,15 @@
     <script>
         function updateFormFields() {
             const shareholderType = document.getElementById('shareholder_type').value;
-            const shareholderNameLabel = document.getElementById('shareholder_name_label');
-            const shareholderCodeLabel = document.getElementById('shareholder_code_label');
+            const shareholderNameLabel = document.getElementById('shareholder_name');
+            const shareholderCodeLabel = document.getElementById('shareholder_code');
 
             if (shareholderType === 'individual') {
-                shareholderNameLabel.textContent = 'Nimi:';
-                shareholderCodeLabel.textContent = 'Isikukood:';
+                shareholderNameLabel.placeholder = 'Nimi';
+                shareholderCodeLabel.placeholder = 'Isikukood';
             } else if (shareholderType === 'legal_entity') {
-                shareholderNameLabel.textContent = 'Nimi:';
-                shareholderCodeLabel.textContent = 'Registrikood:';
+                shareholderNameLabel.placeholder = 'Nimi';
+                shareholderCodeLabel.placeholder = 'Registrikood';
             }
         }
 
@@ -44,7 +44,7 @@
             results.forEach(company => {
                 const div = document.createElement('div');
                 const link = document.createElement('a');
-                link.href = `/company/${company.registry_code}`;
+                link.href = `/view-company/${company.registry_code}`;
                 link.textContent = `Name: ${company.name}, Registration Code: ${company.registry_code}`;
                 div.appendChild(link);
                 resultsContainer.appendChild(div);
@@ -69,10 +69,10 @@
             <option value="individual">Füüsiline isik</option>
             <option value="legal_entity">Juriidiline isik</option>
         </select><br>
-        <label id="shareholder_name_label" for="shareholder_name">Shareholder Name:</label>
-        <input type="text" id="shareholder_name" name="shareholder_name"><br>
-        <label id="shareholder_code_label" for="shareholder_code">Shareholder Code:</label>
-        <input type="text" id="shareholder_code" name="shareholder_code"><br>
+        <label id="shareholder_name_label" for="shareholder_name"></label>
+        <input type="text" id="shareholder_name" name="shareholder_name" placeholder="Nimi"><br>
+        <label id="shareholder_code_label" for="shareholder_code"></label>
+        <input type="text" id="shareholder_code" name="shareholder_code" placeholder="Isikukood"><br>
         <button type="submit">Search</button>
     </form>
     <div id="results"></div>

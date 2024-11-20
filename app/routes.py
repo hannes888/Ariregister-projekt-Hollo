@@ -11,7 +11,7 @@ def index():
 
 
 # Company routes
-@app.route('/company/<string:company_reg_code>')
+@app.route('/view-company/<string:company_reg_code>')
 def view_company(company_reg_code):
     company = Company.query.filter_by(registration_code=company_reg_code).first_or_404()
     shareholders = Shareholder.query.filter_by(company_id=company.id).all()
@@ -180,8 +180,8 @@ def search_companies():
         for company in companies:
             results.append({
                 'name': company.name,
-                'registration_code': company.registration_code,
-                'id': company.id
+                'registry_code': company.registration_code,
+                'id': company.id  # TODO: Remove?
             })
 
         return make_response(jsonify(results), 200)

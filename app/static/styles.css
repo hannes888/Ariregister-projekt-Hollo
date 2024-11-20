@@ -1,5 +1,5 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: "Roboto Light", sans-serif !important;
     margin: 20px;
     background-color: #181818;
 }
@@ -43,6 +43,11 @@ button {
 
 button:hover {
     background-color: #45a049;
+}
+
+a {
+    color: white;
+    text-decoration: none;
 }
 
 #results {

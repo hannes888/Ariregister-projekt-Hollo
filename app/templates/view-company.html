@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Company Details</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
+    <div class="content">
     <h1>Company Details</h1>
     <p>Name: {{ company.name }}</p>
     <p>Registration Code: {{ company.registration_code }}</p>
@@ -36,5 +38,6 @@
         </li>
         {% endfor %}
     </ul>
+    </div>
 </body>
 </html>
