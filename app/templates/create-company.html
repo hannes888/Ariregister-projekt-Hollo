@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Company</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+</head>
+<body>
+    <div class="content">
+        <h1>Create Company</h1>
+        <form id="company-form" action="/create-company" method="POST">
+            <label for="name">Company Name:</label>
+            <input type="text" id="name" name="name" placeholder="Enter company name" required><br>
+            <label for="registration_code">Registration Code:</label>
+            <input type="text" id="registration_code" name="registration_code" placeholder="Enter registration code" required><br>
+            <label for="establishment_date">Establishment Date:</label>
+            <input type="date" id="establishment_date" name="establishment_date" required><br>
+            <label for="total_capital">Total Capital:</label>
+            <input type="number" id="total_capital" name="total_capital" placeholder="Enter total capital" required><br>
+            <button type="button" onclick="addShareholder()">Add Shareholder</button><br>
+            <div id="shareholder-form" style="display: none;">
+                <h2>Shareholder Details</h2>
+                <label for="shareholder_type"></label>
+                <select id="shareholder_type" name="shareholder_type" required>
+                    <option value="" disabled selected>Select Shareholder Type</option>
+                    <option value="individual">Individual</option>
+                    <option value="legal_entity">Legal Entity</option>
+                </select><br>
+                <div id="individual-shareholder" style="display: none;">
+                    <label for="first_name">First Name:</label>
+                    <input type="text" id="first_name" name="first_name" placeholder="Enter first name"><br>
+                    <label for="last_name">Last Name:</label>
+                    <input type="text" id="last_name" name="last_name" placeholder="Enter last name"><br>
+                    <label for="personal_code">Personal Code:</label>
+                    <input type="text" id="personal_code" name="personal_code" placeholder="Enter personal code"><br>
+                </div>
+                <div id="legal-entity-shareholder" style="display: none;">
+                    <label for="entity_name">Entity Name:</label>
+                    <input type="text" id="entity_name" name="entity_name" placeholder="Enter entity name"><br>
+                    <label for="entity_registration_code">Entity Registration Code:</label>
+                    <input type="text" id="entity_registration_code" name="entity_registration_code" placeholder="7-kohaline arv"><br>
+                </div>
+                <label for="share_amount">Share Amount:</label>
+                <input type="number" id="share_amount" name="share_amount" placeholder="Enter share amount" required><br>
+            </div>
+            <button type="submit">Create Company</button>
+        </form>
+        <div id="shareholders-table" style="display: none;">
+            <h2>Saved Shareholders</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Name</th>
+                        <th>Code</th>
+                        <th>Share Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="shareholders-list">
+                </tbody>
+            </table>
+        </div>
+        <script>
+            function addShareholder() {
+                const shareholderForm = document.getElementById('shareholder-form');
+                shareholderForm.style.display = 'block';
+
+                const shareholderType = document.getElementById('shareholder_type').value;
+                let name, code;
+
+                if (shareholderType === 'individual') {
+                    name = document.getElementById('first_name').value + ' ' + document.getElementById('last_name').value;
+                    code = document.getElementById('personal_code').value;
+                } else {
+                    name = document.getElementById('entity_name').value;
+                    code = document.getElementById('entity_registration_code').value;
+                }
+
+                const shareAmount = document.getElementById('share_amount').value;
+
+                const shareholdersTable = document.getElementById('shareholders-table');
+                const shareholdersList = document.getElementById('shareholders-list');
+
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${shareholderType}</td>
+                    <td>${name}</td>
+                    <td>${code}</td>
+                    <td>${shareAmount}</td>
+                `;
+                shareholdersList.appendChild(newRow);
+
+                shareholdersTable.style.display = 'block';
+            }
+
+            document.getElementById('shareholder_type').addEventListener('change', function() {
+                const individualShareholder = document.getElementById('individual-shareholder');
+                const legalEntityShareholder = document.getElementById('legal-entity-shareholder');
+                if (this.value === 'individual') {
+                    individualShareholder.style.display = 'block';
+                    legalEntityShareholder.style.display = 'none';
+                } else if (this.value === 'legal_entity') {
+                    individualShareholder.style.display = 'none';
+                    legalEntityShareholder.style.display = 'block';
+                }
+            });
+        </script>
+    </div>
+</body>
+</html>

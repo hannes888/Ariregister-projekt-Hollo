@@ -46,7 +46,12 @@ def view_company(company_reg_code):
     )
 
 
-@app.route('/company', methods=['POST'])
+@app.route('/create-company', methods=['GET'])
+def create_company_form():
+    return render_template('create-company.html')
+
+
+@app.route('/create-company', methods=['POST'])
 def create_company():
     try:
         data = request.get_json()
