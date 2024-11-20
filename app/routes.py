@@ -39,7 +39,7 @@ def view_company(company_reg_code):
             })
 
     return render_template(
-        'company.html',
+        'view-company.html',
         company=company,
         individual_shareholders=individual_shareholders,
         legal_entity_shareholders=legal_entity_shareholders

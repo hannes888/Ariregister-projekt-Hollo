@@ -4,18 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Company Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script>
+        function updateFormFields() {
+            const shareholderType = document.getElementById('shareholder_type').value;
+            const shareholderNameLabel = document.getElementById('shareholder_name_label');
+            const shareholderCodeLabel = document.getElementById('shareholder_code_label');
+
+            if (shareholderType === 'individual') {
+                shareholderNameLabel.textContent = 'Nimi:';
+                shareholderCodeLabel.textContent = 'Isikukood:';
+            } else if (shareholderType === 'legal_entity') {
+                shareholderNameLabel.textContent = 'Nimi:';
+                shareholderCodeLabel.textContent = 'Registrikood:';
+            }
+        }
+
         async function searchCompanies() {
             const name = document.getElementById('name').value;
-            const registration_code = document.getElementById('registration_code').value;
+            const registry_code = document.getElementById('registry_code').value;
             const shareholder_name = document.getElementById('shareholder_name').value;
             const shareholder_code = document.getElementById('shareholder_code').value;
+            const shareholder_type = document.getElementById('shareholder_type').value;
 
             const params = new URLSearchParams({
                 name,
-                registration_code,
+                registry_code,
                 shareholder_name,
-                shareholder_code
+                shareholder_code,
+                shareholder_type
             });
 
             const response = await fetch(`/search?${params.toString()}`);
@@ -27,27 +44,38 @@
             results.forEach(company => {
                 const div = document.createElement('div');
                 const link = document.createElement('a');
-                link.href = `/company/${company.registration_code}`;
-                link.textContent = `Name: ${company.name}, Registration Code: ${company.registration_code}`;
+                link.href = `/company/${company.registry_code}`;
+                link.textContent = `Name: ${company.name}, Registration Code: ${company.registry_code}`;
                 div.appendChild(link);
                 resultsContainer.appendChild(div);
             });
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('shareholder_type').addEventListener('change', updateFormFields);
+        });
     </script>
 </head>
 <body>
-    <h1>Search for Companies</h1>
+    <div class="content">
+    <h1>Juriidilise isiku otsing</h1>
     <form onsubmit="event.preventDefault(); searchCompanies();">
-        <label for="name">Company Name:</label>
-        <input type="text" id="name" name="name"><br>
-        <label for="registration_code">Registration Code:</label>
-        <input type="text" id="registration_code" name="registration_code"><br>
-        <label for="shareholder_name">Shareholder Name:</label>
+        <label for="name"></label>
+        <input type="text" id="name" name="name" placeholder="Nimi"><br>
+        <label for="registry_code"></label>
+        <input type="text" id="registry_code" name="registry_code" placeholder="Registrikood"><br>
+        <label for="shareholder_type">Otsi osaniku järgi</label>
+        <select id="shareholder_type" name="shareholder_type">
+            <option value="individual">Füüsiline isik</option>
+            <option value="legal_entity">Juriidiline isik</option>
+        </select><br>
+        <label id="shareholder_name_label" for="shareholder_name">Shareholder Name:</label>
         <input type="text" id="shareholder_name" name="shareholder_name"><br>
-        <label for="shareholder_code">Shareholder Code:</label>
+        <label id="shareholder_code_label" for="shareholder_code">Shareholder Code:</label>
         <input type="text" id="shareholder_code" name="shareholder_code"><br>
         <button type="submit">Search</button>
     </form>
     <div id="results"></div>
+    </div>
 </body>
 </html>
