@@ -184,3 +184,20 @@ a {
     text-decoration: none;
     cursor: pointer;
 }
+
+.form-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.form-group label {
+    width: 150px;
+    margin-right: 10px;
+    text-align: right;
+}
+
+.form-group input,
+.form-group select {
+    flex: 1;
+}

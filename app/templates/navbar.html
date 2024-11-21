@@ -1,6 +1,9 @@
 <!-- templates/navbar.html -->
 <nav class="navbar">
-    <a href="{{ url_for('company.create_company') }}" class="green">Create Company</a>
-    <div class="divider"></div>
-    <a href="{{ url_for('company.index') }}" class="green">Search Companies</a>
+    {%  if request.endpoint != 'company.create-company' %}
+        <a href="{{ url_for('company.create_company') }}" class="green">Loo osaühing</a>
+    {% endif %}
+    {% if request.endpoint != 'company.index' %}
+        <a href="{{ url_for('company.index') }}" class="green">Avaleht</a>
+    {% endif %}
 </nav>

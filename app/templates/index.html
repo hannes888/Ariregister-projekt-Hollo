@@ -9,15 +9,15 @@
     <script>
         function updateFormFields() {
             const shareholderType = document.getElementById('shareholder_type').value;
-            const shareholderNameLabel = document.getElementById('shareholder_name');
-            const shareholderCodeLabel = document.getElementById('shareholder_code');
+            const shareholderCodeLabel = document.getElementById('shareholder_code_label');
+            const shareholderCodeInput = document.getElementById('shareholder_code');
 
             if (shareholderType === 'individual') {
-                shareholderNameLabel.placeholder = 'Nimi';
-                shareholderCodeLabel.placeholder = 'Isikukood';
+                shareholderCodeLabel.textContent = 'Isikukood';
+                shareholderCodeInput.placeholder = '12345678901';
             } else if (shareholderType === 'legal_entity') {
-                shareholderNameLabel.placeholder = 'Nimi';
-                shareholderCodeLabel.placeholder = 'Registrikood';
+                shareholderCodeLabel.textContent = 'Registrikood';
+                shareholderCodeInput.placeholder = '1234567';
             }
         }
 
@@ -62,20 +62,30 @@
     <div class="content">
         <h1>Osaühingu otsing</h1>
         <form onsubmit="event.preventDefault(); searchCompanies();">
-            <label for="name"></label>
-            <input type="text" id="name" name="name" placeholder="Nimi"><br>
-            <label for="registration_code"></label>
-            <input type="text" id="registration_code" name="registration_code" placeholder="Registrikood"><br>
-            <label for="shareholder_type">Otsi osaniku järgi</label>
-            <select id="shareholder_type" name="shareholder_type">
-                <option value="individual">Füüsiline isik</option>
-                <option value="legal_entity">Juriidiline isik</option>
-            </select><br>
-            <label id="shareholder_name_label" for="shareholder_name"></label>
-            <input type="text" id="shareholder_name" name="shareholder_name" placeholder="Nimi"><br>
-            <label id="shareholder_code_label" for="shareholder_code"></label>
-            <input type="text" id="shareholder_code" name="shareholder_code" placeholder="Isikukood"><br>
-            <button type="submit">Search</button>
+            <div class="form-group">
+                <label for="name">Nimi</label>
+                <input type="text" id="name" name="name" placeholder="Minu OÜ">
+            </div>
+            <div class="form-group">
+                <label for="registration_code">Registrikood</label>
+                <input type="text" id="registration_code" name="registration_code" placeholder="1234567">
+            </div>
+            <div class="form-group" style="margin-top: 30px">
+                <label for="shareholder_type">Otsi osaniku järgi</label>
+                <select id="shareholder_type" name="shareholder_type">
+                    <option value="individual">Füüsiline isik</option>
+                    <option value="legal_entity">Juriidiline isik</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label id="shareholder_name_label" for="shareholder_name">Nimi</label>
+                <input type="text" id="shareholder_name" name="shareholder_name" placeholder="Jaan Sepp">
+            </div>
+            <div class="form-group">
+                <label id="shareholder_code_label" for="shareholder_code">Isikukood</label>
+                <input type="text" id="shareholder_code" name="shareholder_code" placeholder="12345678901">
+            </div>
+            <button type="submit">Otsi</button>
         </form>
         <div id="results"></div>
     </div>
