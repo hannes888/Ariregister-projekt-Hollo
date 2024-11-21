@@ -87,6 +87,13 @@
                 </tbody>
             </table>
         </div>
+        <div id="error-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <p id="error-message" class="error-message"></p>
+                <button onclick="closeModal()">Close</button>
+            </div>
+        </div>
         <script>
             let totalShareAmount = 0;
             const shareholders = [];
@@ -346,15 +353,39 @@
                         },
                         body: JSON.stringify(data)
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Success:', data);
-                        // Handle success (e.g., redirect to another page or show a success message)
+                    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+                    .then(({ status, body }) => {
+                        if (status === 201) {
+                            window.location.href = `/view-company/${body.company_reg_num}`;
+                        } else {
+                            showErrorModal(body.message);
+                        }
                     })
                     .catch((error) => {
-                        console.error('Error:', error);
-                        // Handle error (e.g., show an error message)
+                        showErrorModal(error.message);
                     });
+                }
+            }
+
+            function showErrorModal(message) {
+                const modal = document.getElementById('error-modal');
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = message;
+                modal.style.display = 'block';
+            }
+
+            function closeModal() {
+                const modal = document.getElementById('error-modal');
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = '';
+                modal.style.display = 'none';
+            }
+
+            // Close the modal when the user clicks anywhere outside of it
+            window.onclick = function(event) {
+                const modal = document.getElementById('error-modal');
+                if (event.target === modal) {
+                    modal.style.display = 'none';
                 }
             }
 

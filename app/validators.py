@@ -1,7 +1,8 @@
 import re
 from datetime import datetime, date
+from flask import make_response, jsonify
 from . import db
-from app.models import Shareholder, Individual, LegalEntity
+from app.models import Shareholder, Individual, LegalEntity, Company
 
 patterns = {
     'company_name': r'[a-zA-Z0-9]{3,100}',
@@ -89,3 +90,19 @@ def validate_shareholder(shareholder_data, company):
         raise ValueError('Invalid shareholder data')
 
     return shareholder
+
+
+def validate_company(company):
+    if not validate_company_name(company.name):
+        return make_response(jsonify({'message': 'Invalid company name'}), 400)
+    if not validate_registration_code(company.registration_code):
+        return make_response(jsonify({'message': 'Invalid registration code'}), 400)
+    if not validate_establishment_date(company.establishment_date):
+        return make_response(jsonify({'message': 'Invalid establishment date'}), 400)
+    if not validate_total_capital(company.total_capital):
+        return make_response(jsonify({'message': 'Invalid total capital'}), 400)
+    if Company.query.filter_by(registration_code=company.registration_code).first():
+        return make_response(jsonify({'message': 'Company with this registration code already exists'}), 400)
+    if Company.query.filter_by(name=company.name).first():
+        return make_response(jsonify({'message': 'Company with this name already exists'}), 400)
+    return make_response(jsonify({'message': 'Company validated'}), 200)
