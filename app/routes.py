@@ -106,22 +106,32 @@ def search_companies():
         registration_code = request.args.get('registration_code')
         shareholder_name = request.args.get('shareholder_name')
         shareholder_code = request.args.get('shareholder_code')
+        shareholder_type = request.args.get('shareholder_type')
 
         query = db.session.query(Company)
 
         if name:
             query = query.filter(Company.name.ilike(f'%{name}%'))
         if registration_code:
-            query = query.filter(Company.registration_code.ilike(f'%{registration_code}%'))
-        if shareholder_name or shareholder_code:
+            query = query.filter(Company.registration_code == registration_code)
+
+        if shareholder_name or shareholder_code or shareholder_type:
             query = query.join(Shareholder)
-            if shareholder_name:
-                query = query.join(Individual).filter(
-                    (Individual.first_name.ilike(f'%{shareholder_name}%')) |
-                    (Individual.last_name.ilike(f'%{shareholder_name}%'))
-                )
-            if shareholder_code:
-                query = query.join(Individual).filter(Individual.personal_code.ilike(f'%{shareholder_code}%'))
+            if shareholder_type == 'individual':
+                query = query.join(Individual)
+                if shareholder_name:
+                    query = query.filter(
+                        (Individual.first_name.ilike(f'%{shareholder_name}%')) |
+                        (Individual.last_name.ilike(f'%{shareholder_name}%'))
+                    )
+                if shareholder_code:
+                    query = query.filter(Individual.personal_code == shareholder_code)
+            elif shareholder_type == 'legal_entity':
+                query = query.join(LegalEntity)
+                if shareholder_code:
+                    query = query.filter(LegalEntity.registration_code == shareholder_code)
+                if shareholder_name:
+                    query = query.filter(LegalEntity.name.ilike(f'%{shareholder_name}%'))
 
         companies = query.all()
 
