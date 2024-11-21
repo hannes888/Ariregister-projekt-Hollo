@@ -11,7 +11,8 @@ def create_app():
     db.init_app(app)
 
     with app.app_context():
-        from . import routes
+        from .controllers import company_controller
+        app.register_blueprint(company_controller.bp)
         db.create_all()
 
     return app

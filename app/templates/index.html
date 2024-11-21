@@ -23,14 +23,14 @@
 
         async function searchCompanies() {
             const name = document.getElementById('name').value;
-            const registry_code = document.getElementById('registry_code').value;
+            const registration_code = document.getElementById('registration_code').value;
             const shareholder_name = document.getElementById('shareholder_name').value;
             const shareholder_code = document.getElementById('shareholder_code').value;
             const shareholder_type = document.getElementById('shareholder_type').value;
 
             const params = new URLSearchParams({
                 name,
-                registry_code,
+                registration_code,
                 shareholder_name,
                 shareholder_code,
                 shareholder_type
@@ -45,8 +45,8 @@
             results.forEach(company => {
                 const div = document.createElement('div');
                 const link = document.createElement('a');
-                link.href = `/view-company/${company.registry_code}`;
-                link.textContent = `Name: ${company.name}, Registration Code: ${company.registry_code}`;
+                link.href = `/view-company/${company.registration_code}`;
+                link.textContent = `Name: ${company.name}, Registration Code: ${company.registration_code}`;
                 div.appendChild(link);
                 resultsContainer.appendChild(div);
             });
@@ -64,8 +64,8 @@
         <form onsubmit="event.preventDefault(); searchCompanies();">
             <label for="name"></label>
             <input type="text" id="name" name="name" placeholder="Nimi"><br>
-            <label for="registry_code"></label>
-            <input type="text" id="registry_code" name="registry_code" placeholder="Registrikood"><br>
+            <label for="registration_code"></label>
+            <input type="text" id="registration_code" name="registration_code" placeholder="Registrikood"><br>
             <label for="shareholder_type">Otsi osaniku järgi</label>
             <select id="shareholder_type" name="shareholder_type">
                 <option value="individual">Füüsiline isik</option>
