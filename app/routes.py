@@ -2,6 +2,7 @@ from flask import request, jsonify, make_response, current_app as app, render_te
 from . import db
 from .models import Company, Individual, LegalEntity, Shareholder
 from .validators import *
+from sqlalchemy.exc import SQLAlchemyError
 
 
 # Default route
@@ -57,8 +58,6 @@ def create_company():
         data = request.get_json()
         app.logger.debug(f"Received data: {data}")
 
-        # establishment_date = datetime.strptime(data['establishment_date'], '%Y-%m-%d').date()
-
         new_company = Company(
             name=data['name'],
             registration_code=data['registration_code'],
@@ -66,93 +65,38 @@ def create_company():
             total_capital=data['total_capital']
         )
 
+        # Validate company data
+        company_validation_response = validate_company(new_company)
+        if company_validation_response.status_code != 200:
+            return company_validation_response
+
         total_shareholder_capital = 0
 
-        # Validate company data
-        if not validate_company_name(new_company.name):
-            return make_response(jsonify({'message': 'Invalid company name'}), 400)
-        if not validate_registration_code(new_company.registration_code):
-            return make_response(jsonify({'message': 'Invalid registration code'}), 400)
-        if not validate_establishment_date(new_company.establishment_date):
-            return make_response(jsonify({'message': 'Invalid establishment date'}), 400)
-        if not validate_total_capital(new_company.total_capital):
-            return make_response(jsonify({'message': 'Invalid total capital'}), 400)
-        if Company.query.filter_by(registration_code=new_company.registration_code).first():
-            return make_response(jsonify({'message': 'Company with this registration code already exists'}), 400)
-        if Company.query.filter_by(name=new_company.name).first():
-            return make_response(jsonify({'message': 'Company with this name already exists'}), 400)
-
+        # Start a transaction
         db.session.add(new_company)
+        db.session.flush()  # Ensure new_company.id is available
+        print(f"New company id: {new_company.id}")
 
         # Add shareholders
         shareholders_data = data.get('shareholders', [])
         for shareholder_data in shareholders_data:
-            app.logger.debug(f"Processing shareholder: {shareholder_data}")
-
-            # Validate shareholder data
-            if shareholder_data['share_amount'] <= 1 or not isinstance(shareholder_data['share_amount'], int):
-                return make_response(jsonify({'message': 'Invalid share amount'}), 400)
-
-            if shareholder_data['type'] == 'individual':
-                new_individual = Individual(
-                    first_name=shareholder_data['first_name'],
-                    last_name=shareholder_data['last_name'],
-                    personal_code=shareholder_data['personal_code']
-                )
-
-                # Validate individual data
-                if not validate_personal_id_number(new_individual.personal_code):
-                    return make_response(jsonify({'message': 'Invalid personal code'}), 400)
-
-                existing_individual = Individual.query.filter_by(personal_code=new_individual.personal_code).first()
-                if existing_individual:
-                    new_individual = existing_individual
-                else:
-                    db.session.add(new_individual)
-
-                shareholder = Shareholder(
-                    company_id=new_company.id,
-                    individual_id=new_individual.id,
-                    share_amount=shareholder_data['share_amount'],
-                    is_founder=True
-                )
-            elif shareholder_data['type'] == 'legal_entity':
-                new_legal_entity = LegalEntity(
-                    name=shareholder_data['name'],
-                    registration_code=shareholder_data['registration_code']
-                )
-
-                # Validate legal entity data
-                if not validate_registry_number(new_legal_entity.registration_code):
-                    return make_response(jsonify({'message': 'Invalid registry number'}), 400)
-
-                existing_legal_entity = LegalEntity.query.filter_by(registration_code=new_legal_entity.registration_code).first()
-                if existing_legal_entity:
-                    new_legal_entity = existing_legal_entity
-                else:
-                    db.session.add(new_legal_entity)
-
-                shareholder = Shareholder(
-                    company_id=new_company.id,
-                    legal_entity_id=new_legal_entity.id,
-                    share_amount=shareholder_data['share_amount'],
-                    is_founder=True
-                )
-            else:
-                return make_response(jsonify({'message': 'Invalid shareholder type'}), 400)
-            db.session.add(shareholder)
-            total_shareholder_capital += shareholder.share_amount
+            validate_shareholder_response = validate_shareholder(shareholder_data, new_company)
+            db.session.add(validate_shareholder_response)
+            total_shareholder_capital += validate_shareholder_response.share_amount
 
         # Validate total shareholder capital
         if total_shareholder_capital != new_company.total_capital:
-            return make_response(jsonify({'message': 'Total shareholder capital does not match company total capital'}), 400)
+            raise ValueError('Total shareholder capital does not match company total capital')
 
         db.session.commit()
-
         return make_response(jsonify({'message': 'Company and shareholders created'}), 201)
-    except Exception as e:
+    except (ValueError, SQLAlchemyError) as e:
+        db.session.rollback()
         app.logger.error(f"Error creating company: {e}")
-        return make_response(jsonify({'message': f'Error creating company {e}'}), 500)
+        return make_response(jsonify({'message': f'Error creating company: {e}'}), 400)
+    except Exception as e:
+        app.logger.error(f"Unexpected error: {e}")
+        return make_response(jsonify({'message': f'Unexpected error: {e}'}), 500)
 
 
 @app.route('/search', methods=['GET'])
@@ -206,3 +150,22 @@ def create_legal_entity():
     except Exception as e:
         app.logger.error(f"Error creating legal entity: {e}")
         return make_response(jsonify({'message': 'Error creating legal entity'}), 500)
+
+
+def validate_company(company):
+    if not validate_company_name(company.name):
+        return make_response(jsonify({'message': 'Invalid company name'}), 400)
+    if not validate_registration_code(company.registration_code):
+        return make_response(jsonify({'message': 'Invalid registration code'}), 400)
+    if not validate_establishment_date(company.establishment_date):
+        return make_response(jsonify({'message': 'Invalid establishment date'}), 400)
+    if not validate_total_capital(company.total_capital):
+        return make_response(jsonify({'message': 'Invalid total capital'}), 400)
+    if Company.query.filter_by(registration_code=company.registration_code).first():
+        return make_response(jsonify({'message': 'Company with this registration code already exists'}), 400)
+    if Company.query.filter_by(name=company.name).first():
+        return make_response(jsonify({'message': 'Company with this name already exists'}), 400)
+    return make_response(jsonify({'message': 'Company validated'}), 200)
+
+
+

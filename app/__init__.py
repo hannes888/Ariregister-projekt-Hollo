@@ -7,6 +7,7 @@ db = SQLAlchemy()
 def create_app():
     app = Flask(__name__)
     app.config.from_object('app.config.Config')
+    app.config['DEBUG'] = True
     db.init_app(app)
 
     with app.app_context():

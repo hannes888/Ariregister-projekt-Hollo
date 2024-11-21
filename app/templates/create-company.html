@@ -8,91 +8,354 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
 </head>
 <body>
+    {% include 'navbar.html' %}
     <div class="content">
         <h1>Create Company</h1>
-        <form id="company-form" action="/create-company" method="POST">
+        <form id="company-form" onsubmit="submitForm(event)">
             <label for="name">Company Name:</label>
-            <input type="text" id="name" name="name" placeholder="Enter company name" required><br>
+            <input type="text" id="name" name="name" placeholder="Enter company name" required oninput="validateName()">
+            <span id="name-error" class="error-message"></span><br>
             <label for="registration_code">Registration Code:</label>
-            <input type="text" id="registration_code" name="registration_code" placeholder="Enter registration code" required><br>
+            <input type="text" id="registration_code" name="registration_code" placeholder="Enter registration code" required oninput="validateRegistrationCode()">
+            <span id="registration-code-error" class="error-message"></span><br>
             <label for="establishment_date">Establishment Date:</label>
-            <input type="date" id="establishment_date" name="establishment_date" required><br>
+            <input type="date" id="establishment_date" name="establishment_date" required oninput="validateEstablishmentDate()">
+            <span id="establishment-date-error" class="error-message"></span><br>
             <label for="total_capital">Total Capital:</label>
-            <input type="number" id="total_capital" name="total_capital" placeholder="Enter total capital" required><br>
-            <button type="button" onclick="addShareholder()">Add Shareholder</button><br>
-            <div id="shareholder-form" style="display: none;">
-                <h2>Shareholder Details</h2>
-                <label for="shareholder_type"></label>
-                <select id="shareholder_type" name="shareholder_type" required>
-                    <option value="" disabled selected>Select Shareholder Type</option>
-                    <option value="individual">Individual</option>
-                    <option value="legal_entity">Legal Entity</option>
-                </select><br>
-                <div id="individual-shareholder" style="display: none;">
-                    <label for="first_name">First Name:</label>
-                    <input type="text" id="first_name" name="first_name" placeholder="Enter first name"><br>
-                    <label for="last_name">Last Name:</label>
-                    <input type="text" id="last_name" name="last_name" placeholder="Enter last name"><br>
-                    <label for="personal_code">Personal Code:</label>
-                    <input type="text" id="personal_code" name="personal_code" placeholder="Enter personal code"><br>
-                </div>
-                <div id="legal-entity-shareholder" style="display: none;">
-                    <label for="entity_name">Entity Name:</label>
-                    <input type="text" id="entity_name" name="entity_name" placeholder="Enter entity name"><br>
-                    <label for="entity_registration_code">Entity Registration Code:</label>
-                    <input type="text" id="entity_registration_code" name="entity_registration_code" placeholder="7-kohaline arv"><br>
-                </div>
-                <label for="share_amount">Share Amount:</label>
-                <input type="number" id="share_amount" name="share_amount" placeholder="Enter share amount" required><br>
-            </div>
+            <input type="number" id="total_capital" name="total_capital" placeholder="Enter total capital" required oninput="validateTotalCapital()">
+            <span id="total-capital-error" class="error-message"></span><br>
             <button type="submit">Create Company</button>
         </form>
-        <div id="shareholders-table" style="display: none;">
-            <h2>Saved Shareholders</h2>
-            <table>
+        <div id="shareholder-form" style="display: none;">
+            <h2>Shareholder Details</h2>
+            <label for="shareholder_type"></label>
+            <select id="shareholder_type" name="shareholder_type" required oninput="validateShareholderType()">
+                <option value="" disabled selected>Select Shareholder Type</option>
+                <option value="individual">Individual</option>
+                <option value="legal_entity">Legal Entity</option>
+            </select>
+            <span id="shareholder-type-error" class="error-message"></span><br>
+            <div id="individual-shareholder" style="display: none;">
+                <label for="first_name">First Name:</label>
+                <input type="text" id="first_name" name="first_name" placeholder="Enter first name" oninput="validateFirstName()">
+                <span id="first-name-error" class="error-message"></span><br>
+                <label for="last_name">Last Name:</label>
+                <input type="text" id="last_name" name="last_name" placeholder="Enter last name" oninput="validateLastName()">
+                <span id="last-name-error" class="error-message"></span><br>
+                <label for="personal_code">Personal Code:</label>
+                <input type="text" id="personal_code" name="personal_code" placeholder="Enter personal code" oninput="validatePersonalCode()">
+                <span id="personal-code-error" class="error-message"></span><br>
+            </div>
+            <div id="legal-entity-shareholder" style="display: none;">
+                <label for="entity_name">Entity Name:</label>
+                <input type="text" id="entity_name" name="entity_name" placeholder="Enter entity name" oninput="validateEntityName()">
+                <span id="entity-name-error" class="error-message"></span><br>
+                <label for="entity_registration_code">Entity Registration Code:</label>
+                <input type="text" id="entity_registration_code" name="entity_registration_code" placeholder="Enter entity registration code" oninput="validateEntityRegistrationCode()">
+                <span id="entity-registration-code-error" class="error-message"></span><br>
+            </div>
+            <label for="share_amount">Share Amount:</label>
+            <input type="number" id="share_amount" name="share_amount" placeholder="Enter share amount" required oninput="validateShareAmount()">
+            <span id="share-amount-error" class="error-message"></span><br>
+        </div>
+        <button type="button" id="add-shareholder-button" onclick="toggleShareholderForm()">Add Shareholder</button><br>
+        <div id="individual-shareholders-table" style="display: none;">
+            <h2>Individual Shareholders</h2>
+            <table class="styled-table">
                 <thead>
                     <tr>
-                        <th>Type</th>
                         <th>Name</th>
-                        <th>Code</th>
+                        <th>Personal Code</th>
                         <th>Share Amount</th>
                     </tr>
                 </thead>
-                <tbody id="shareholders-list">
+                <tbody id="individual-shareholders-list">
+                </tbody>
+            </table>
+        </div>
+        <div id="legal-entity-shareholders-table" style="display: none;">
+            <h2>Legal Entity Shareholders</h2>
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Entity Name</th>
+                        <th>Registration Code</th>
+                        <th>Share Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="legal-entity-shareholders-list">
                 </tbody>
             </table>
         </div>
         <script>
-            function addShareholder() {
-                const shareholderForm = document.getElementById('shareholder-form');
-                shareholderForm.style.display = 'block';
+            let totalShareAmount = 0;
+            const shareholders = [];
 
+            function validateName() {
+                const name = document.getElementById('name').value;
+                const nameError = document.getElementById('name-error');
+                if (name.length < 3 || name.length > 100) {
+                    nameError.textContent = 'Company name must be at least 3 characters long.';
+                } else {
+                    nameError.textContent = '';
+                }
+            }
+
+            function validateRegistrationCode() {
+                const registrationCode = document.getElementById('registration_code').value;
+                const registrationCodeError = document.getElementById('registration-code-error');
+                if (registrationCode.length !== 7 || isNaN(registrationCode)) {
+                    registrationCodeError.textContent = 'Registration code must be a 7-digit number.';
+                } else {
+                    registrationCodeError.textContent = '';
+                }
+            }
+
+            function validateEstablishmentDate() {
+                const establishmentDate = new Date(document.getElementById('establishment_date').value);
+                const establishmentDateError = document.getElementById('establishment-date-error');
+                const today = new Date();
+
+                if (establishmentDate > today) {
+                    establishmentDateError.textContent = 'Establishment date cannot be in the future.';
+                } else {
+                    establishmentDateError.textContent = '';
+                }
+            }
+
+            function validateTotalCapital() {
+                const totalCapital = document.getElementById('total_capital').value;
+                const totalCapitalError = document.getElementById('total-capital-error');
+
+                if (totalCapital < 2500) {
+                    totalCapitalError.textContent = 'Total capital must be greater than 2500.';
+                    return false;
+                } else if (!Number.isInteger(Number(totalCapital))) {
+                    totalCapitalError.textContent = 'Total capital must be an integer.';
+                    return false;
+                } else if (parseInt(totalCapital, 10) !== totalShareAmount) {
+                    totalCapitalError.textContent = 'Total capital must be the sum of all shareholder share amounts.';
+                    return false;
+                } else {
+                    totalCapitalError.textContent = '';
+                    return true;
+                }
+            }
+
+            function validateShareholderType() {
                 const shareholderType = document.getElementById('shareholder_type').value;
-                let name, code;
+                const shareholderTypeError = document.getElementById('shareholder-type-error');
+                if (!shareholderType) {
+                    shareholderTypeError.textContent = 'Shareholder type is required.';
+                } else {
+                    shareholderTypeError.textContent = '';
+                }
+            }
+
+            function validateFirstName() {
+                const firstName = document.getElementById('first_name').value;
+                const firstNameError = document.getElementById('first-name-error');
+                const nameRegex = /^[A-Za-z\s]{1,50}$/;
+                if (!nameRegex.test(firstName)) {
+                    firstNameError.textContent = 'First name must contain only letters and spaces, and be 1 to 50 characters long.';
+                } else {
+                    firstNameError.textContent = '';
+                }
+            }
+
+            function validateLastName() {
+                const lastName = document.getElementById('last_name').value;
+                const lastNameError = document.getElementById('last-name-error');
+                const nameRegex = /^[A-Za-z\s]{1,50}$/;
+                if (!nameRegex.test(lastName)) {
+                    lastNameError.textContent = 'Last name must contain only letters and spaces, and be 1 to 50 characters long.';
+                } else {
+                    lastNameError.textContent = '';
+                }
+            }
+
+            function validatePersonalCode() {
+                const personalCode = document.getElementById('personal_code').value;
+                const personalCodeError = document.getElementById('personal-code-error');
+                const codeRegex = /^\d{11}$/;
+                if (!codeRegex.test(personalCode)) {
+                    personalCodeError.textContent = 'Personal code must be exactly 11 numbers.';
+                } else {
+                    personalCodeError.textContent = '';
+                }
+            }
+
+            function validateEntityName() {
+                const entityName = document.getElementById('entity_name').value;
+                const entityNameError = document.getElementById('entity-name-error');
+                const nameRegex = /^[A-Za-z\s]{1,50}$/;
+                if (!nameRegex.test(entityName)) {
+                    entityNameError.textContent = 'Entity name must contain only letters and spaces, and be 1 to 50 characters long.';
+                } else {
+                    entityNameError.textContent = '';
+                }
+            }
+
+            function validateEntityRegistrationCode() {
+                const entityRegistrationCode = document.getElementById('entity_registration_code').value;
+                const entityRegistrationCodeError = document.getElementById('entity-registration-code-error');
+                const codeRegex = /^\d{7}$/;
+                if (!codeRegex.test(entityRegistrationCode)) {
+                    entityRegistrationCodeError.textContent = 'Entity registration code must be exactly 7 numbers.';
+                } else {
+                    entityRegistrationCodeError.textContent = '';
+                }
+            }
+
+            function validateShareAmount() {
+                const shareAmount = document.getElementById('share_amount').value;
+                const shareAmountError = document.getElementById('share-amount-error');
+                if (!Number.isInteger(Number(shareAmount)) || shareAmount < 1) {
+                    shareAmountError.textContent = 'Share amount must be an integer greater than 0.';
+                } else {
+                    shareAmountError.textContent = '';
+                }
+            }
+
+            function validateShareholderForm() {
+                validateShareholderType();
+                const shareholderType = document.getElementById('shareholder_type').value;
+                if (shareholderType === 'individual') {
+                    validateFirstName();
+                    validateLastName();
+                    validatePersonalCode();
+                } else if (shareholderType === 'legal_entity') {
+                    validateEntityName();
+                    validateEntityRegistrationCode();
+                }
+                validateShareAmount();
+
+                const errors = document.querySelectorAll('#shareholder-form .error-message');
+                for (let error of errors) {
+                    if (error.textContent) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            function validateForm() {
+                validateName();
+                validateRegistrationCode();
+                validateEstablishmentDate();
+                validateTotalCapital();
+
+                const errors = document.querySelectorAll('.error-message');
+                for (let error of errors) {
+                    if (error.textContent) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            function toggleShareholderForm() {
+                const form = document.getElementById('shareholder-form');
+                const button = document.getElementById('add-shareholder-button');
+                if (form.style.display === 'none') {
+                    form.style.display = 'block';
+                    button.textContent = 'Save Shareholder';
+                } else {
+                    if (validateShareholderForm()) {
+                        addShareholder();
+                        form.style.display = 'none';
+                        button.textContent = 'Add Shareholder';
+                    }
+                }
+            }
+
+            function addShareholder() {
+                const shareholderType = document.getElementById('shareholder_type').value;
+                let name, code, table, list;
 
                 if (shareholderType === 'individual') {
                     name = document.getElementById('first_name').value + ' ' + document.getElementById('last_name').value;
                     code = document.getElementById('personal_code').value;
+                    table = document.getElementById('individual-shareholders-table');
+                    list = document.getElementById('individual-shareholders-list');
                 } else {
                     name = document.getElementById('entity_name').value;
                     code = document.getElementById('entity_registration_code').value;
+                    table = document.getElementById('legal-entity-shareholders-table');
+                    list = document.getElementById('legal-entity-shareholders-list');
                 }
 
                 const shareAmount = document.getElementById('share_amount').value;
 
-                const shareholdersTable = document.getElementById('shareholders-table');
-                const shareholdersList = document.getElementById('shareholders-list');
-
                 const newRow = document.createElement('tr');
                 newRow.innerHTML = `
-                    <td>${shareholderType}</td>
                     <td>${name}</td>
                     <td>${code}</td>
                     <td>${shareAmount}</td>
                 `;
-                shareholdersList.appendChild(newRow);
+                list.appendChild(newRow);
+                totalShareAmount += parseInt(shareAmount, 10);
+                validateTotalCapital();
 
-                shareholdersTable.style.display = 'block';
+                table.style.display = 'block';
+
+                if (shareholderType === 'individual') {
+                    shareholders.push({
+                        type: shareholderType,
+                        first_name: document.getElementById('first_name').value,
+                        last_name: document.getElementById('last_name').value,
+                        personal_code: document.getElementById('personal_code').value,
+                        share_amount: parseInt(shareAmount, 10),
+                        is_founder: true
+                    });
+                } else {
+                    shareholders.push({
+                        type: shareholderType,
+                        name: document.getElementById('entity_name').value,
+                        registration_code: document.getElementById('entity_registration_code').value,
+                        share_amount: parseInt(shareAmount, 10),
+                        is_founder: true
+                    });
+                }
+
+                // Clear the form
+                document.getElementById('shareholder_type').value = '';
+                document.getElementById('first_name').value = '';
+                document.getElementById('last_name').value = '';
+                document.getElementById('personal_code').value = '';
+                document.getElementById('entity_name').value = '';
+                document.getElementById('entity_registration_code').value = '';
+                document.getElementById('share_amount').value = '';
+            }
+
+            function submitForm(event) {
+                event.preventDefault();
+                if (validateForm()) {
+                    const data = {
+                        name: document.getElementById('name').value,
+                        registration_code: document.getElementById('registration_code').value,
+                        establishment_date: document.getElementById('establishment_date').value,
+                        total_capital: parseInt(document.getElementById('total_capital').value, 10),
+                        shareholders: shareholders
+                    };
+
+                    fetch('/create-company', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Success:', data);
+                        // Handle success (e.g., redirect to another page or show a success message)
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                        // Handle error (e.g., show an error message)
+                    });
+                }
             }
 
             document.getElementById('shareholder_type').addEventListener('change', function() {
