@@ -89,3 +89,31 @@ def search_companies():
     except Exception as e:
         app.logger.error(f"Error searching companies: {e}")
         return make_response(jsonify({'message': 'Error searching companies'}), 500)
+
+
+@app.route('/search-shareholder', methods=['GET'])
+def search_shareholder():
+    try:
+        query = request.args.get('query')
+        results = CompanyService.search_shareholder(query)
+
+        serialized_results = []
+        for result in results:
+            if isinstance(result, Individual):
+                serialized_results.append({
+                    'type': 'individual',
+                    'first_name': result.first_name,
+                    'last_name': result.last_name,
+                    'personal_code': result.personal_code
+                })
+            elif isinstance(result, LegalEntity):
+                serialized_results.append({
+                    'type': 'legal_entity',
+                    'name': result.name,
+                    'registration_code': result.registration_code
+                })
+
+        return jsonify(serialized_results)
+    except Exception as e:
+        app.logger.error(f"Error searching shareholders: {e}")
+        return make_response(jsonify({'message': 'Error searching shareholders'}), 500)

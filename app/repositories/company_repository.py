@@ -56,3 +56,18 @@ class CompanyRepository:
                     query = query.filter(LegalEntity.name.ilike(f'%{shareholder_name}%'))
 
         return query.all()
+
+    @staticmethod
+    def search_shareholder(data=None):
+
+        individual_results = Individual.query.filter(
+            (Individual.first_name.ilike(f'%{data}%')) |
+            (Individual.last_name.ilike(f'%{data}%')) |
+            (Individual.personal_code == data)
+        ).all()
+        legal_entity_results = LegalEntity.query.filter(
+            (LegalEntity.name.ilike(f'%{data}%')) |
+            (LegalEntity.registration_code == data)
+        ).all()
+
+        return individual_results + legal_entity_results

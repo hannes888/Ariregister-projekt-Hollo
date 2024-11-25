@@ -28,6 +28,9 @@
         </form>
         <div id="shareholder-form" style="display: none;">
             <h2>Shareholder Details</h2>
+            <label for="search_shareholder">Search Shareholder:</label>
+            <input type="text" id="search_shareholder" name="search_shareholder" placeholder="Enter name or code" oninput="searchShareholder()">
+            <div id="search-results"></div>
             <label for="shareholder_type"></label>
             <select id="shareholder_type" name="shareholder_type" required oninput="validateShareholderType()">
                 <option value="" disabled selected>Select Shareholder Type</option>
@@ -98,13 +101,46 @@
             let totalShareAmount = 0;
             const shareholders = [];
 
-            function validateName() {
-                const name = document.getElementById('name').value;
-                const nameError = document.getElementById('name-error');
-                if (name.length < 3 || name.length > 100) {
-                    nameError.textContent = 'Company name must be at least 3 characters long.';
+            function searchShareholder() {
+                const query = document.getElementById('search_shareholder').value;
+                if (query.length < 3) {
+                    document.getElementById('search-results').innerHTML = '';
+                    return;
+                }
+
+                fetch(`/search-shareholder?query=${query}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const resultsDiv = document.getElementById('search-results');
+                        resultsDiv.innerHTML = '';
+                        resultsDiv.classList.add('search-results');
+                        data.forEach(shareholder => {
+                            const resultItem = document.createElement('div');
+                            resultItem.classList.add('search-result-item');
+                            if (shareholder.type === 'individual') {
+                                resultItem.textContent = `${shareholder.first_name} ${shareholder.last_name} (${shareholder.personal_code})`;
+                            } else {
+                                resultItem.textContent = `${shareholder.name} (${shareholder.registration_code})`;
+                            }
+                            resultItem.onclick = () => populateShareholderForm(shareholder);
+                            resultsDiv.appendChild(resultItem);
+                        });
+                    });
+            }
+
+            function populateShareholderForm(shareholder) {
+                document.getElementById('shareholder_type').value = shareholder.type;
+                if (shareholder.type === 'individual') {
+                    document.getElementById('first_name').value = shareholder.first_name;
+                    document.getElementById('last_name').value = shareholder.last_name;
+                    document.getElementById('personal_code').value = shareholder.personal_code;
+                    document.getElementById('individual-shareholder').style.display = 'block';
+                    document.getElementById('legal-entity-shareholder').style.display = 'none';
                 } else {
-                    nameError.textContent = '';
+                    document.getElementById('entity_name').value = shareholder.name;
+                    document.getElementById('entity_registration_code').value = shareholder.registration_code;
+                    document.getElementById('individual-shareholder').style.display = 'none';
+                    document.getElementById('legal-entity-shareholder').style.display = 'block';
                 }
             }
 
@@ -224,6 +260,16 @@
                 }
             }
 
+            function validateName() {
+                const name = document.getElementById('name').value;
+                const nameError = document.getElementById('name-error');
+                if (name.length < 3 || name.length > 100) {
+                    nameError.textContent = 'Company name must be at least 3 characters long.';
+                } else {
+                    nameError.textContent = '';
+                }
+            }
+
             function validateShareholderForm() {
                 validateShareholderType();
                 const shareholderType = document.getElementById('shareholder_type').value;
@@ -277,8 +323,10 @@
             }
 
             function addShareholder() {
-                const shareholderType = document.getElementById('shareholder_type').value;
+
                 let name, code, table, list;
+
+                const shareholderType = document.getElementById('shareholder_type').value;
 
                 if (shareholderType === 'individual') {
                     name = document.getElementById('first_name').value + ' ' + document.getElementById('last_name').value;
@@ -305,6 +353,7 @@
                 validateTotalCapital();
 
                 table.style.display = 'block';
+
 
                 if (shareholderType === 'individual') {
                     shareholders.push({

@@ -59,4 +59,8 @@ class CompanyService:
             shareholder_name=shareholder_name,
             shareholder_code=shareholder_code,
             shareholder_type=shareholder_type
-       )
+        )
+
+    @staticmethod
+    def search_shareholder(query):
+        return CompanyRepository.search_shareholder(query)
