@@ -62,5 +62,5 @@ class CompanyService:
         )
 
     @staticmethod
-    def search_shareholder(query):
-        return CompanyRepository.search_shareholder(query)
+    def search_shareholder(query, limit, offset):
+        return CompanyRepository.search_shareholder(query, limit, offset)

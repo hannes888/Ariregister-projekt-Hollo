@@ -58,16 +58,24 @@ class CompanyRepository:
         return query.all()
 
     @staticmethod
-    def search_shareholder(data=None):
-
-        individual_results = Individual.query.filter(
+    def search_shareholder(data=None, limit=5, offset=0):
+        individual_query = Individual.query.filter(
             (Individual.first_name.ilike(f'%{data}%')) |
             (Individual.last_name.ilike(f'%{data}%')) |
             (Individual.personal_code == data)
-        ).all()
-        legal_entity_results = LegalEntity.query.filter(
+        )
+        legal_entity_query = LegalEntity.query.filter(
             (LegalEntity.name.ilike(f'%{data}%')) |
             (LegalEntity.registration_code == data)
-        ).all()
+        )
 
-        return individual_results + legal_entity_results
+        total_results = legal_entity_query.count() + individual_query.count()
+
+        individual_results = individual_query.limit(limit).offset(offset).all()
+        remaining_limit = limit - len(individual_results)
+        legal_entity_results = legal_entity_query.limit(remaining_limit).offset(offset).all()
+
+        return {
+            'results': individual_results + legal_entity_results,
+            'total': total_results
+        }

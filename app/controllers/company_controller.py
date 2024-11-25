@@ -95,10 +95,12 @@ def search_companies():
 def search_shareholder():
     try:
         query = request.args.get('query')
-        results = CompanyService.search_shareholder(query)
+        limit = int(request.args.get('limit', 5))
+        offset = int(request.args.get('offset', 0))
+        result_data = CompanyService.search_shareholder(query, limit, offset)
 
         serialized_results = []
-        for result in results:
+        for result in result_data['results']:
             if isinstance(result, Individual):
                 serialized_results.append({
                     'type': 'individual',
@@ -113,7 +115,10 @@ def search_shareholder():
                     'registration_code': result.registration_code
                 })
 
-        return jsonify(serialized_results)
+        return jsonify({
+            'results': serialized_results,
+            'total': result_data['total']
+        })
     except Exception as e:
         app.logger.error(f"Error searching shareholders: {e}")
         return make_response(jsonify({'message': 'Error searching shareholders'}), 500)

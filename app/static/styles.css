@@ -14,6 +14,7 @@ body {
     display: flex;
     justify-content: space-around;
     z-index: 1000;
+    background-color: #181818;
 }
 
 a,
@@ -224,4 +225,8 @@ a {
 .search-result-item:hover {
     background-color: #4CAF50;
     color: white;
+}
+
+#pagination-info {
+    margin-top: 10px;
 }

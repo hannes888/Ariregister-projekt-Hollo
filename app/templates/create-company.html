@@ -30,7 +30,12 @@
             <h2>Shareholder Details</h2>
             <label for="search_shareholder">Search Shareholder:</label>
             <input type="text" id="search_shareholder" name="search_shareholder" placeholder="Enter name or code" oninput="searchShareholder()">
+            <div id="pagination-info"></div>
             <div id="search-results"></div>
+            <div id="pagination-controls">
+                <button onclick="previousPage()">Previous</button>
+                <button onclick="nextPage()">Next</button>
+            </div>
             <label for="shareholder_type"></label>
             <select id="shareholder_type" name="shareholder_type" required oninput="validateShareholderType()">
                 <option value="" disabled selected>Select Shareholder Type</option>
@@ -101,20 +106,28 @@
             let totalShareAmount = 0;
             const shareholders = [];
 
-            function searchShareholder() {
+            let currentPage = 1;
+            const resultsPerPage = 3
+            let totalPages = 0;
+
+            function searchShareholder(page = 1) {
                 const query = document.getElementById('search_shareholder').value;
-                if (query.length < 3) {
+                if (query.length < 1) {
                     document.getElementById('search-results').innerHTML = '';
+                    document.getElementById('pagination-info').textContent = '';
                     return;
                 }
 
-                fetch(`/search-shareholder?query=${query}`)
+                fetch(`/search-shareholder?query=${query}&limit=${resultsPerPage}&offset=${(page - 1) * resultsPerPage}`)
                     .then(response => response.json())
                     .then(data => {
+                        if (!data.results) {
+                            throw new Error('Invalid response structure');
+                        }
                         const resultsDiv = document.getElementById('search-results');
                         resultsDiv.innerHTML = '';
                         resultsDiv.classList.add('search-results');
-                        data.forEach(shareholder => {
+                        data.results.forEach(shareholder => {
                             const resultItem = document.createElement('div');
                             resultItem.classList.add('search-result-item');
                             if (shareholder.type === 'individual') {
@@ -125,7 +138,27 @@
                             resultItem.onclick = () => populateShareholderForm(shareholder);
                             resultsDiv.appendChild(resultItem);
                         });
+
+                        const paginationInfo = document.getElementById('pagination-info');
+                        totalPages = Math.ceil(data.total / resultsPerPage);
+                        paginationInfo.textContent = `Showing page ${currentPage} of ${totalPages}`;
                     });
+            }
+
+            function nextPage() {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    searchShareholder(currentPage);
+                    document.getElementById('page-number').textContent = currentPage;
+                }
+            }
+
+            function previousPage() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    searchShareholder(currentPage);
+                    document.getElementById('page-number').textContent = currentPage;
+                }
             }
 
             function populateShareholderForm(shareholder) {
