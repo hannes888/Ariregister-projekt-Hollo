@@ -1,4 +1,3 @@
-# test_company_service.py
 import unittest
 from unittest.mock import patch, MagicMock
 from app.services.company_service import CompanyService

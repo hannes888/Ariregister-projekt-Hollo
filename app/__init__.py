@@ -7,9 +7,13 @@ db = SQLAlchemy()
 
 
 @retry(wait=wait_fixed(2), stop=stop_after_attempt(5))
-def create_app():
+def create_app(config_name=None):
     app = Flask(__name__)
-    app.config.from_object('app.config.Config')
+
+    if config_name == 'testing':
+        app.config.from_object('config.TestingConfig')
+    else:
+        app.config.from_object('config.Config')
     app.config['DEBUG'] = True
     db.init_app(app)
 
