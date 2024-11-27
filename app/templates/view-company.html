@@ -109,10 +109,10 @@
                 <input type="text" id="personal_code" name="personal_code" placeholder="Enter personal code">
             </div>
             <div id="legal-entity-shareholder" style="display: none;">
-                <label for="entity_name">Entity Name:</label>
-                <input type="text" id="entity_name" name="entity_name" placeholder="Enter entity name">
-                <label for="entity_registration_code">Entity Registration Code:</label>
-                <input type="text" id="entity_registration_code" name="entity_registration_code" placeholder="Enter entity registration code">
+                <label for="name">Entity Name:</label>
+                <input type="text" id="name" name="name" placeholder="Enter entity name">
+                <label for="registration_code">Entity Registration Code:</label>
+                <input type="text" id="registration_code" name="registration_code" placeholder="Enter entity registration code">
             </div>
             <div>
                 <label for="share_amount">Share Amount:</label>
@@ -120,6 +120,13 @@
             </div>
             <button type="submit">Add Shareholder</button>
         </form>
+    </div>
+    <div id="error-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <p id="error-message" class="error-message"></p>
+            <button onclick="closeModal()">Close</button>
+        </div>
     </div>
     <script>
         let currentPage = 1;
@@ -184,8 +191,8 @@
                 document.getElementById('individual-shareholder').style.display = 'block';
                 document.getElementById('legal-entity-shareholder').style.display = 'none';
             } else {
-                document.getElementById('entity_name').value = shareholder.name;
-                document.getElementById('entity_registration_code').value = shareholder.registration_code;
+                document.getElementById('name').value = shareholder.name;
+                document.getElementById('registration_code').value = shareholder.registration_code;
                 document.getElementById('individual-shareholder').style.display = 'none';
                 document.getElementById('legal-entity-shareholder').style.display = 'block';
             }
@@ -250,6 +257,65 @@
                 alert(`Unexpected error: ${error}`);
             }
         }
+
+        function showErrorModal(message) {
+            const modal = document.getElementById('error-modal');
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = message;
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('error-modal');
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = '';
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('error-modal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        async function addShareholder(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = {
+                company_reg_code: formData.get('company_reg_code'),
+                shareholder_type: formData.get('shareholder_type'),
+                first_name: formData.get('first_name'),
+                last_name: formData.get('last_name'),
+                personal_code: formData.get('personal_code'),
+                name: formData.get('name'),
+                registration_code: formData.get('registration_code'),
+                share_amount: parseInt(formData.get('share_amount'), 10)
+            };
+
+            try {
+                const response = await fetch('/add-shareholder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert(result.message);
+                    window.location.href = '{{ url_for("company.view_company", company_reg_code=company.registration_code) }}';
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                showErrorModal(`Unexpected error: ${error}`);
+            }
+        }
+
+        document.getElementById('add-shareholder-form').addEventListener('submit', addShareholder);
     </script>
 </body>
 </html>

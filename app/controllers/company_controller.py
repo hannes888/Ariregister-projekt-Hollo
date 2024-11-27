@@ -123,11 +123,14 @@ def update_share_amount():
 @bp.route('/add-shareholder', methods=['POST'])
 def add_shareholder():
     try:
-        data = request.form
+        data = request.get_json()
         company_reg_code = data['company_reg_code']
         CompanyService.add_shareholder(data)
 
-        return redirect(url_for('company.view_company', company_reg_code=company_reg_code))
+        return jsonify({'message': 'Shareholder added successfully'}), 200
+    except ValueError as e:
+        app.logger.error(f"ValueError adding shareholder: {e}")
+        return jsonify({'message': str(e)}), 400
     except Exception as e:
         app.logger.error(f"Error adding shareholder: {e}")
-        return make_response(jsonify({'message': 'Error adding shareholder'}), 500)
+        return jsonify({'message': 'An unexpected error occurred while adding the shareholder'}), 500

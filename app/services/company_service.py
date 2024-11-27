@@ -8,6 +8,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 engine = create_engine('postgresql://postgres:docker@flask_db:5432/rik')
 Session = sessionmaker(bind=engine)
 
@@ -138,9 +141,12 @@ class CompanyService:
             total_capital_increase = 0
 
             for shareholder_data in shareholders_data:
+                logger.error(
+                    f"Updating share amount in service layer for shareholder {shareholder_data['shareholder_code']} with company reg code {company_reg_code}")
                 shareholder_code = shareholder_data['shareholder_code']
                 shareholder_type = shareholder_data['shareholder_type']
-                shareholder_id = CompanyRepository.get_shareholder_id_by_code(shareholder_code, shareholder_type,
+                shareholder_id = CompanyRepository.get_shareholder_id_by_code(company.id, shareholder_code,
+                                                                              shareholder_type,
                                                                               session)
                 if shareholder_id is None:
                     raise ValueError('Shareholder not found')
@@ -152,7 +158,7 @@ class CompanyService:
                 if new_share_amount < current_share_amount:
                     raise ValueError('New share amount cannot be less than current share amount')
 
-                CompanyRepository.update_share_amount(shareholder_id, new_share_amount, session)
+                CompanyRepository.update_share_amount(company.id, shareholder_id, new_share_amount, session)
 
             new_total_capital = company.total_capital + total_capital_increase
             CompanyRepository.update_total_capital(company.id, new_total_capital, session)
@@ -167,18 +173,41 @@ class CompanyService:
 
     @staticmethod
     def add_shareholder(data):
+        """
+        Adds a new shareholder to the company.
+
+        :param data: A dictionary containing shareholder details.
+        :type data: dict
+        :raises ValueError: If the company is not found or the shareholder already exists.
+        :raises SQLAlchemyError: If there is an error with the database operation.
+        :return: A message indicating the success of the operation.
+        :rtype: dict
+        """
         session = Session()
+        try:
+            company_reg_code = data['company_reg_code']
+            company = CompanyRepository.get_by_registration_code(company_reg_code)
+            if not company:
+                raise ValueError('Company not found')
 
-        company_reg_code = data['company_reg_code']
-        company = CompanyRepository.get_by_registration_code(company_reg_code)
-        if not company:
-            raise ValueError('Company not found')
+            shareholder_code = data['registration_code']
+            shareholder_type = data['shareholder_type']
 
-        new_shareholder = validate_shareholder(data, company, is_founder=False)
+            if not CompanyRepository.get_shareholder_id_by_code(company.id, shareholder_code, shareholder_type, session):
+                raise ValueError('Shareholder already exists')
 
-        CompanyRepository.add_shareholder(new_shareholder)
+            new_shareholder = validate_shareholder(data, company, is_founder=False)
+            logger.info(f"Adding shareholder {new_shareholder}")
 
-        CompanyRepository.update_total_capital(company.id, company.total_capital + new_shareholder.share_amount, session)
+            CompanyRepository.add_shareholder(new_shareholder)
+            CompanyRepository.update_total_capital(company.id, company.total_capital + new_shareholder.share_amount,
+                                                   session)
 
-        session.commit()
-        return {'message': 'Shareholder added successfully'}
+            session.commit()
+            return {'message': 'Shareholder added successfully'}
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Error adding shareholder: {e}")
+            raise e
+        finally:
+            session.close()

@@ -1,14 +1,22 @@
 # app/repositories/company_repository.py
+from sqlalchemy import exists
 from sqlalchemy.exc import SQLAlchemyError
+import logging
+
+# Configure the logger
+
 
 from ..models import Company, Shareholder, Individual, LegalEntity
 from .. import db
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class CompanyRepository:
     @staticmethod
     def get_by_registration_code(registration_code):
-        return Company.query.filter_by(registration_code=registration_code).first()
+        return Company.query.filter_by(registration_code=registration_code).one()
 
     @staticmethod
     def add(company):
@@ -26,12 +34,14 @@ class CompanyRepository:
 
     @staticmethod
     def validate_total_shareholder_capital(company_id, total_capital):
-        total_shareholder_capital = db.session.query(db.func.sum(Shareholder.share_amount)).filter_by(company_id=company_id).scalar()
+        total_shareholder_capital = db.session.query(db.func.sum(Shareholder.share_amount)).filter_by(
+            company_id=company_id).scalar()
         if total_shareholder_capital != total_capital:
             raise ValueError('Total shareholder capital does not match company total capital')
 
     @staticmethod
-    def search_companies(name=None, registration_code=None, shareholder_name=None, shareholder_code=None, shareholder_type=None):
+    def search_companies(name=None, registration_code=None, shareholder_name=None, shareholder_code=None,
+                         shareholder_type=None):
         query = db.session.query(Company)
 
         if name:
@@ -83,9 +93,9 @@ class CompanyRepository:
         }
 
     @staticmethod
-    def update_share_amount(shareholder_id, new_share_amount, session):
+    def update_share_amount(company_id, shareholder_id, new_share_amount, session):
         try:
-            shareholder = session.query(Shareholder).filter_by(id=shareholder_id).one()
+            shareholder = session.query(Shareholder).filter_by(company_id=company_id, id=shareholder_id).one()
             shareholder.share_amount = new_share_amount
             session.add(shareholder)
         except SQLAlchemyError as e:
@@ -93,16 +103,26 @@ class CompanyRepository:
             raise e
 
     @staticmethod
-    def get_shareholder_id_by_code(shareholder_code, shareholder_type, session):
+    def get_shareholder_id_by_code(company_id, shareholder_code, shareholder_type, session):
+        """
+        Get shareholder ID by code that can match either individual personal code or legal entity registration code
+        :param company_id: Company ID
+        :param shareholder_code: Shareholder code
+        :param shareholder_type: Type of shareholder (individual or legal_entity)
+        :param session:
+        :return:
+        """
         if shareholder_type == 'individual':
             individual = session.query(Individual).filter_by(personal_code=shareholder_code).first()
             if individual:
-                shareholder = session.query(Shareholder).filter_by(individual_id=individual.id).first()
+                shareholder = session.query(Shareholder).filter_by(company_id=company_id,
+                                                                   individual_id=individual.id).first()
                 return shareholder.id if shareholder else None
         elif shareholder_type == 'legal_entity':
             legal_entity = session.query(LegalEntity).filter_by(registration_code=shareholder_code).first()
             if legal_entity:
-                shareholder = session.query(Shareholder).filter_by(legal_entity_id=legal_entity.id).first()
+                shareholder = session.query(Shareholder).filter_by(company_id=company_id,
+                                                                   legal_entity_id=legal_entity.id).first()
                 return shareholder.id if shareholder else None
         return None
 

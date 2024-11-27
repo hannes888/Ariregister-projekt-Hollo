@@ -390,7 +390,7 @@
 
                 if (shareholderType === 'individual') {
                     shareholders.push({
-                        type: shareholderType,
+                        shareholder_type: shareholderType,
                         first_name: document.getElementById('first_name').value,
                         last_name: document.getElementById('last_name').value,
                         personal_code: document.getElementById('personal_code').value,
@@ -399,7 +399,7 @@
                     });
                 } else {
                     shareholders.push({
-                        type: shareholderType,
+                        shareholder_type: shareholderType,
                         name: document.getElementById('entity_name').value,
                         registration_code: document.getElementById('entity_registration_code').value,
                         share_amount: parseInt(shareAmount, 10),

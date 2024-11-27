@@ -1,8 +1,12 @@
+import logging
 import re
 from datetime import datetime, date
 from flask import make_response, jsonify
-from . import db, app
+from . import db
 from app.models import Shareholder, Individual, LegalEntity, Company
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 patterns = {
     'company_name': r'[a-zA-Z0-9]{3,100}',
@@ -51,11 +55,18 @@ def validate_registry_number(input_value):
 
 
 def validate_shareholder(shareholder_data, company, is_founder=True):
-    if not shareholder_data.get('share_amount').isdigit() or int(shareholder_data.get('share_amount')) < 1:
+    if int(shareholder_data.get('share_amount')) < 1:
         return make_response(jsonify({'message': 'Invalid share amount'}), 400)
 
-    logger.info(f"Shareholder data: {shareholder_data}")
-    if shareholder_data.get('type') == 'individual':
+    shareholder_type = shareholder_data.get('shareholder_type')
+    logger.info(f'Validating shareholder: {shareholder_type}')
+
+    if shareholder_type == 'individual':
+        required_fields = ['first_name', 'last_name', 'personal_code']
+        for field in required_fields:
+            if not shareholder_data.get(field):
+                return make_response(jsonify({'message': f'Missing field: {field}'}), 400)
+
         individual_data = {
             'first_name': shareholder_data['first_name'],
             'last_name': shareholder_data['last_name'],
@@ -73,7 +84,12 @@ def validate_shareholder(shareholder_data, company, is_founder=True):
             share_amount=shareholder_data['share_amount'],
             is_founder=is_founder
         )
-    elif shareholder_data.get('type') == 'legal_entity':
+    elif shareholder_type == 'legal_entity':
+        required_fields = ['name', 'registration_code']
+        for field in required_fields:
+            if not shareholder_data.get(field):
+                return make_response(jsonify({'message': f'Missing field: {field}'}), 400)
+
         legal_entity_data = {
             'name': shareholder_data['name'],
             'registration_code': shareholder_data['registration_code']
