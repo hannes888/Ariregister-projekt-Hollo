@@ -60,7 +60,7 @@ class CompanyService:
 
     @staticmethod
     def get_company_by_registration_code(registration_code):
-        return CompanyRepository.get_by_registration_code(registration_code)
+        return CompanyRepository.get_company_by_registration_code(registration_code)
 
     @staticmethod
     def get_all_companies():
@@ -87,7 +87,7 @@ class CompanyService:
         :param company_reg_code: Company registration code
         :return: Company entity, list of individual shareholders, list of legal entity shareholders
         """
-        company = CompanyRepository.get_by_registration_code(company_reg_code)
+        company = CompanyRepository.get_company_by_registration_code(company_reg_code)
         if not company:
             return None
 
@@ -134,7 +134,7 @@ class CompanyService:
         """
         session = Session()
         try:
-            company = CompanyRepository.get_by_registration_code(company_reg_code)
+            company = CompanyRepository.get_company_by_registration_code(company_reg_code)
             if company is None:
                 raise ValueError('Company not found')
 
@@ -186,14 +186,25 @@ class CompanyService:
         session = Session()
         try:
             company_reg_code = data['company_reg_code']
-            company = CompanyRepository.get_by_registration_code(company_reg_code)
+            company = CompanyRepository.get_company_by_registration_code(company_reg_code)
             if not company:
                 raise ValueError('Company not found')
 
-            shareholder_code = data['registration_code']
             shareholder_type = data['shareholder_type']
+            if shareholder_type == 'individual':
+                shareholder_code = data['personal_code']
+            elif shareholder_type == 'legal_entity':
+                shareholder_code = data['registration_code']
+                # Unlike individuals, legal entities can not share the same name
+                existing_legal_entity = CompanyRepository.get_legal_entity_by_registration_code(shareholder_code)
+                if existing_legal_entity is not None and existing_legal_entity.name != data['name']:
+                    raise ValueError('Legal entity with this registration code already exists and has a different name')
+            else:
+                raise ValueError('Invalid shareholder type')
 
-            if not CompanyRepository.get_shareholder_id_by_code(company.id, shareholder_code, shareholder_type, session):
+            if CompanyRepository.get_shareholder_id_by_code(company.id, shareholder_code, shareholder_type, session) is not None:
+                CompanyRepository.get_shareholder_id_by_code(company.id, shareholder_code, shareholder_type, session)
+                logger.info(f"Shareholder already exists")
                 raise ValueError('Shareholder already exists')
 
             new_shareholder = validate_shareholder(data, company, is_founder=False)

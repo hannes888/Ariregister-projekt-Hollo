@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 class CompanyRepository:
     @staticmethod
-    def get_by_registration_code(registration_code):
+    def get_company_by_registration_code(registration_code):
         return Company.query.filter_by(registration_code=registration_code).one()
 
     @staticmethod
@@ -141,5 +141,17 @@ class CompanyRepository:
         return Individual.query.get(individual_id)
 
     @staticmethod
+    def get_individual_by_personal_code(personal_code):
+        return Individual.query.filter_by(personal_code=personal_code).one()
+
+    @staticmethod
     def get_legal_entity_by_id(legal_entity_id):
         return LegalEntity.query.get(legal_entity_id)
+
+    @staticmethod
+    def get_legal_entity_by_registration_code(registration_code):
+        return LegalEntity.query.filter_by(registration_code=registration_code).one()
+
+    @staticmethod
+    def get_shareholder_by_id(shareholder_id):
+        return Shareholder.query.get(shareholder_id)
