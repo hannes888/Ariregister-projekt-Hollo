@@ -1,5 +1,5 @@
 # app/controllers/company_controller.py
-from flask import Blueprint, request, jsonify, make_response, current_app as app, render_template
+from flask import Blueprint, request, jsonify, make_response, current_app as app, render_template, redirect, url_for
 from ..services.company_service import CompanyService
 from ..models import Shareholder, LegalEntity, Individual
 from sqlalchemy.exc import SQLAlchemyError
@@ -12,40 +12,18 @@ def index():
     return render_template('index.html')
 
 
+# app/controllers/company_controller.py
 @bp.route('/view-company/<string:company_reg_code>')
 def view_company(company_reg_code):
-    company = CompanyService.get_company_by_registration_code(company_reg_code)
-    if not company:
+    company_details = CompanyService.get_company_details(company_reg_code)
+    if not company_details:
         return make_response(jsonify({'message': 'Company not found'}), 404)
-    shareholders = Shareholder.query.filter_by(company_id=company.id).all()
-
-    individual_shareholders = []
-    legal_entity_shareholders = []
-
-    for shareholder in shareholders:
-        if shareholder.individual_id:
-            individual = Individual.query.get(shareholder.individual_id)
-            individual_shareholders.append({
-                'first_name': individual.first_name,
-                'last_name': individual.last_name,
-                'personal_code': individual.personal_code,
-                'share_amount': shareholder.share_amount,
-                'is_founder': shareholder.is_founder
-            })
-        elif shareholder.legal_entity_id:
-            legal_entity = LegalEntity.query.get(shareholder.legal_entity_id)
-            legal_entity_shareholders.append({
-                'name': legal_entity.name,
-                'registration_code': legal_entity.registration_code,
-                'share_amount': shareholder.share_amount,
-                'is_founder': shareholder.is_founder
-            })
 
     return render_template(
         'view-company.html',
-        company=company,
-        individual_shareholders=individual_shareholders,
-        legal_entity_shareholders=legal_entity_shareholders
+        company=company_details['company'],
+        individual_shareholders=company_details['individual_shareholders'],
+        legal_entity_shareholders=company_details['legal_entity_shareholders']
     )
 
 
@@ -59,7 +37,9 @@ def create_company():
     try:
         data = request.get_json()
         new_company = CompanyService.create_company(data)
-        return make_response(jsonify({'message': 'Company and shareholders created', 'company_reg_num': new_company.registration_code}), 201)
+        return make_response(
+            jsonify({'message': 'Company and shareholders created', 'company_reg_num': new_company.registration_code}),
+            201)
     except ValueError as e:
         return make_response(jsonify({'message': f'Error creating company: {e}'}), 400)
     except Exception as e:
@@ -75,7 +55,8 @@ def search_companies():
         shareholder_code = request.args.get('shareholder_code')
         shareholder_type = request.args.get('shareholder_type')
 
-        companies = CompanyService.search_companies(name, registration_code, shareholder_name, shareholder_code, shareholder_type)
+        companies = CompanyService.search_companies(name, registration_code, shareholder_name, shareholder_code,
+                                                    shareholder_type)
 
         results = []
         for company in companies:
@@ -91,7 +72,7 @@ def search_companies():
         return make_response(jsonify({'message': 'Error searching companies'}), 500)
 
 
-@app.route('/search-shareholder', methods=['GET'])
+@bp.route('/search-shareholder', methods=['GET'])
 def search_shareholder():
     try:
         query = request.args.get('query')
@@ -122,3 +103,31 @@ def search_shareholder():
     except Exception as e:
         app.logger.error(f"Error searching shareholders: {e}")
         return make_response(jsonify({'message': 'Error searching shareholders'}), 500)
+
+
+@bp.route('/update-share-amount', methods=['POST'])
+def update_share_amount():
+    try:
+        data = request.get_json()
+        company_reg_code = data['company_reg_code']
+        shareholders = data['shareholders']
+
+        CompanyService.update_share_amount(company_reg_code, shareholders)
+
+        return jsonify({"message": "Share amounts updated successfully"}), 200
+    except Exception as e:
+        app.logger.error(f"Error updating share amount: {e}")
+        return make_response(jsonify({'message': 'Error updating share amount'}), 500)
+
+
+@bp.route('/add-shareholder', methods=['POST'])
+def add_shareholder():
+    try:
+        data = request.form
+        company_reg_code = data['company_reg_code']
+        CompanyService.add_shareholder(data)
+
+        return redirect(url_for('company.view_company', company_reg_code=company_reg_code))
+    except Exception as e:
+        app.logger.error(f"Error adding shareholder: {e}")
+        return make_response(jsonify({'message': 'Error adding shareholder'}), 500)

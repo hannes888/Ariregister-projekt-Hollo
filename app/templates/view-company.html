@@ -1,3 +1,4 @@
+<!-- app/templates/view-company.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,36 +10,246 @@
 <body>
     {% include 'navbar.html' %}
     <div class="content">
-    <h1>Company Details</h1>
-    <p>Name: {{ company.name }}</p>
-    <p>Registration Code: {{ company.registration_code }}</p>
-    <p>Establishment Date: {{ company.establishment_date }}</p>
-    <p>Total Capital: {{ company.total_capital }}</p>
+        <h1>Company Details</h1>
+        <p>Name: {{ company.name }}</p>
+        <p>Registration Code: {{ company.registration_code }}</p>
+        <p>Establishment Date: {{ company.establishment_date }}</p>
+        <p>Total Capital: {{ company.total_capital }}</p>
 
-    <h2>Individual Shareholders</h2>
-    <ul>
-        {% for shareholder in individual_shareholders %}
-        <li>
-            <p>First Name: {{ shareholder.first_name }}</p>
-            <p>Last Name: {{ shareholder.last_name }}</p>
-            <p>Personal Code: {{ shareholder.personal_code }}</p>
-            <p>Share Amount: {{ shareholder.share_amount }}</p>
-            <p>Founder: {{ shareholder.is_founder }}</p>
-        </li>
-        {% endfor %}
-    </ul>
+        <h2>Individual Shareholders</h2>
+        <form onsubmit="updateShareAmount(event)">
+            <input type="hidden" name="registration_code" value="{{ company.registration_code }}">
+            <table class="styled-table">
+                <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Personal Code</th>
+                    <th>Current Share Amount</th>
+                    <th>New Share Amount</th>
+                    <th>Founder</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for shareholder in individual_shareholders %}
+                    <tr>
+                        <td>{{ shareholder.first_name }}</td>
+                        <td>{{ shareholder.last_name }}</td>
+                        <td>{{ shareholder.personal_code }}</td>
+                        <td>{{ shareholder.share_amount }}</td>
+                        <td><input type="number" name="new_share_amount_{{ shareholder.personal_code }}" value="{{ shareholder.share_amount }}" step="1" min="{{ shareholder.share_amount }}"></td>
+                        <td>{{ shareholder.is_founder }}</td>
+                        <input type="hidden" name="shareholder_code_{{ shareholder.personal_code }}" value="{{ shareholder.personal_code }}">
+                        <input type="hidden" name="shareholder_type_{{ shareholder.personal_code }}" value="individual">
+                        <input type="hidden" name="current_share_amount_{{ shareholder.personal_code }}" value="{{ shareholder.share_amount }}">
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <button type="submit">Save</button>
+        </form>
 
-    <h2>Legal Entity Shareholders</h2>
-    <ul>
-        {% for shareholder in legal_entity_shareholders %}
-        <li>
-            <p>Name: {{ shareholder.name }}</p>
-            <p>Registration Code: {{ shareholder.registration_code }}</p>
-            <p>Share Amount: {{ shareholder.share_amount }}</p>
-            <p>Founder: {{ shareholder.is_founder }}</p>
-        </li>
-        {% endfor %}
-    </ul>
+        <h2>Legal Entity Shareholders</h2>
+        <form onsubmit="updateShareAmount(event)">
+            <input type="hidden" name="registration_code" value="{{ company.registration_code }}">
+            <table class="styled-table">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Registration Code</th>
+                    <th>Current Share Amount</th>
+                    <th>New Share Amount</th>
+                    <th>Founder</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for shareholder in legal_entity_shareholders %}
+                    <tr>
+                        <td>{{ shareholder.name }}</td>
+                        <td>{{ shareholder.registration_code }}</td>
+                        <td>{{ shareholder.share_amount }}</td>
+                        <td><input type="number" name="new_share_amount_{{ shareholder.registration_code }}" value="{{ shareholder.share_amount }}" step="1" min="{{ shareholder.share_amount }}"></td>
+                        <td>{{ shareholder.is_founder }}</td>
+                        <input type="hidden" name="shareholder_code_{{ shareholder.registration_code }}" value="{{ shareholder.registration_code }}">
+                        <input type="hidden" name="shareholder_type_{{ shareholder.registration_code }}" value="legal_entity">
+                        <input type="hidden" name="current_share_amount_{{ shareholder.registration_code }}" value="{{ shareholder.share_amount }}">
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <button type="submit">Save</button>
+        </form>
+
+        <h3>Add Shareholder</h3>
+        <form id="add-shareholder-form" action="/add-shareholder" method="post">
+            <input type="hidden" name="company_reg_code" value="{{ company.registration_code }}">
+            <div>
+                <label for="search_shareholder">Search Shareholder:</label>
+                <input type="text" id="search_shareholder" name="search_shareholder" placeholder="Enter name or code" oninput="searchShareholder()">
+                <div id="pagination-info"></div>
+                <div id="search-results"></div>
+                <div id="pagination-controls">
+                    <button type="button" onclick="previousPage()">Previous</button>
+                    <button type="button" onclick="nextPage()">Next</button>
+                </div>
+            </div>
+            <div>
+                <label for="shareholder_type">Shareholder Type:</label>
+                <select name="shareholder_type" id="shareholder_type" required>
+                    <option value="individual">Individual</option>
+                    <option value="legal_entity">Legal Entity</option>
+                </select>
+            </div>
+            <div id="individual-shareholder" style="display: none;">
+                <label for="first_name">First Name:</label>
+                <input type="text" id="first_name" name="first_name" placeholder="Enter first name">
+                <label for="last_name">Last Name:</label>
+                <input type="text" id="last_name" name="last_name" placeholder="Enter last name">
+                <label for="personal_code">Personal Code:</label>
+                <input type="text" id="personal_code" name="personal_code" placeholder="Enter personal code">
+            </div>
+            <div id="legal-entity-shareholder" style="display: none;">
+                <label for="entity_name">Entity Name:</label>
+                <input type="text" id="entity_name" name="entity_name" placeholder="Enter entity name">
+                <label for="entity_registration_code">Entity Registration Code:</label>
+                <input type="text" id="entity_registration_code" name="entity_registration_code" placeholder="Enter entity registration code">
+            </div>
+            <div>
+                <label for="share_amount">Share Amount:</label>
+                <input type="number" id="share_amount" name="share_amount" placeholder="Enter share amount" required>
+            </div>
+            <button type="submit">Add Shareholder</button>
+        </form>
     </div>
+    <script>
+        let currentPage = 1;
+        const resultsPerPage = 3;
+        let totalPages = 0;
+
+        function searchShareholder(page = 1) {
+            const query = document.getElementById('search_shareholder').value;
+            if (query.length < 1) {
+                document.getElementById('search-results').innerHTML = '';
+                document.getElementById('pagination-info').textContent = '';
+                return;
+            }
+
+            fetch(`/search-shareholder?query=${query}&limit=${resultsPerPage}&offset=${(page - 1) * resultsPerPage}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.results) {
+                        throw new Error('Invalid response structure');
+                    }
+                    const resultsDiv = document.getElementById('search-results');
+                    resultsDiv.innerHTML = '';
+                    resultsDiv.classList.add('search-results');
+                    data.results.forEach(shareholder => {
+                        const resultItem = document.createElement('div');
+                        resultItem.classList.add('search-result-item');
+                        if (shareholder.type === 'individual') {
+                            resultItem.textContent = `${shareholder.first_name} ${shareholder.last_name} (${shareholder.personal_code})`;
+                        } else {
+                            resultItem.textContent = `${shareholder.name} (${shareholder.registration_code})`;
+                        }
+                        resultItem.onclick = () => populateShareholderForm(shareholder);
+                        resultsDiv.appendChild(resultItem);
+                    });
+
+                    const paginationInfo = document.getElementById('pagination-info');
+                    totalPages = Math.ceil(data.total / resultsPerPage);
+                    paginationInfo.textContent = `Showing page ${currentPage} of ${totalPages}`;
+                });
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                searchShareholder(currentPage);
+            }
+        }
+
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                searchShareholder(currentPage);
+            }
+        }
+
+        function populateShareholderForm(shareholder) {
+            document.getElementById('shareholder_type').value = shareholder.type;
+            if (shareholder.type === 'individual') {
+                document.getElementById('first_name').value = shareholder.first_name;
+                document.getElementById('last_name').value = shareholder.last_name;
+                document.getElementById('personal_code').value = shareholder.personal_code;
+                document.getElementById('individual-shareholder').style.display = 'block';
+                document.getElementById('legal-entity-shareholder').style.display = 'none';
+            } else {
+                document.getElementById('entity_name').value = shareholder.name;
+                document.getElementById('entity_registration_code').value = shareholder.registration_code;
+                document.getElementById('individual-shareholder').style.display = 'none';
+                document.getElementById('legal-entity-shareholder').style.display = 'block';
+            }
+        }
+
+        document.getElementById('shareholder_type').addEventListener('change', function() {
+            const individualShareholder = document.getElementById('individual-shareholder');
+            const legalEntityShareholder = document.getElementById('legal-entity-shareholder');
+            if (this.value === 'individual') {
+                individualShareholder.style.display = 'block';
+                legalEntityShareholder.style.display = 'none';
+            } else if (this.value === 'legal_entity') {
+                individualShareholder.style.display = 'none';
+                legalEntityShareholder.style.display = 'block';
+            }
+        });
+
+        async function updateShareAmount(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = {
+                company_reg_code: formData.get('registration_code'),
+                shareholders: []
+            };
+
+            console.log('Raw form data:');
+            formData.forEach((value, key) => {
+                console.log(`${key}: ${value}`);
+            });
+
+            formData.forEach((value, key) => {
+                if (key.startsWith('new_share_amount_')) {
+                    console.log(`Processing ${key}`)
+                    const id = key.split('_')[3];
+                    data.shareholders.push({
+                        shareholder_code: formData.get(`shareholder_code_${id}`),
+                        shareholder_type: formData.get(`shareholder_type_${id}`),
+                        current_share_amount: parseInt(formData.get(`current_share_amount_${id}`), 10),
+                        new_share_amount: parseInt(value, 10)
+                    });
+                }
+            });
+
+            try {
+                const response = await fetch('{{ url_for("company.update_share_amount") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert(result.message);
+                    window.location.href = '{{ url_for("company.view_company", company_reg_code=company.registration_code) }}';
+                } else {
+                    alert(`Error: ${result.message}`);
+                }
+            } catch (error) {
+                alert(`Unexpected error: ${error}`);
+            }
+        }
+    </script>
 </body>
 </html>

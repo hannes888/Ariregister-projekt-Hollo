@@ -1,7 +1,7 @@
 import re
 from datetime import datetime, date
 from flask import make_response, jsonify
-from . import db
+from . import db, app
 from app.models import Shareholder, Individual, LegalEntity, Company
 
 patterns = {
@@ -50,7 +50,11 @@ def validate_registry_number(input_value):
     return False
 
 
-def validate_shareholder(shareholder_data, company):
+def validate_shareholder(shareholder_data, company, is_founder=True):
+    if not shareholder_data.get('share_amount').isdigit() or int(shareholder_data.get('share_amount')) < 1:
+        return make_response(jsonify({'message': 'Invalid share amount'}), 400)
+
+    logger.info(f"Shareholder data: {shareholder_data}")
     if shareholder_data.get('type') == 'individual':
         individual_data = {
             'first_name': shareholder_data['first_name'],
@@ -67,7 +71,7 @@ def validate_shareholder(shareholder_data, company):
             company_id=company.id,
             individual_id=individual.id,
             share_amount=shareholder_data['share_amount'],
-            is_founder=shareholder_data['is_founder']
+            is_founder=is_founder
         )
     elif shareholder_data.get('type') == 'legal_entity':
         legal_entity_data = {
@@ -84,7 +88,7 @@ def validate_shareholder(shareholder_data, company):
             company_id=company.id,
             legal_entity_id=legal_entity.id,
             share_amount=shareholder_data['share_amount'],
-            is_founder=shareholder_data['is_founder']
+            is_founder=is_founder
         )
     else:
         raise ValueError('Invalid shareholder data')
