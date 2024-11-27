@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from app.services.company_service import CompanyService
+from app.services.app_service import AppService
 from app.models import Company, Shareholder
 
 
@@ -41,7 +41,7 @@ class TestCompanyService(unittest.TestCase):
         ]
 
         # Call the method
-        new_company = CompanyService.create_company(data)
+        new_company = AppService.create_company(data)
 
         # Assertions
         mock_company_repository.add.assert_called_once_with(new_company)
@@ -69,7 +69,7 @@ class TestCompanyService(unittest.TestCase):
         mock_validate_company.return_value = MagicMock(status_code=400, message='Invalid company data')
 
         # Call the method
-        response = CompanyService.create_company(data)
+        response = AppService.create_company(data)
 
         # Assertions
         self.assertEqual(response.status_code, 400)
@@ -98,7 +98,7 @@ class TestCompanyService(unittest.TestCase):
 
         # Call the method
         with self.assertRaises(ValueError) as context:
-            CompanyService.create_company(data)
+            AppService.create_company(data)
 
         # Assertions
         self.assertEqual(str(context.exception), 'Invalid shareholder data')

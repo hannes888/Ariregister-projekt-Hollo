@@ -2,7 +2,7 @@ import logging
 import re
 from datetime import datetime, date
 from flask import make_response, jsonify
-from . import db
+from app.extensions import db
 from app.models import Shareholder, Individual, LegalEntity, Company
 
 logging.basicConfig(level=logging.INFO)

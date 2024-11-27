@@ -1,19 +1,9 @@
-# app/repositories/company_repository.py
-from sqlalchemy import exists
 from sqlalchemy.exc import SQLAlchemyError
-import logging
-
-# Configure the logger
-
-
 from ..models import Company, Shareholder, Individual, LegalEntity
-from .. import db
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from app.extensions import db
 
 
-class CompanyRepository:
+class AppRepository:
     @staticmethod
     def get_company_by_registration_code(registration_code):
         return Company.query.filter_by(registration_code=registration_code).one()

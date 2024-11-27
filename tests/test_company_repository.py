@@ -1,7 +1,7 @@
 import unittest
 from app import create_app, db
 from app.models import Individual, LegalEntity
-from app.repositories.company_repository import CompanyRepository
+from app.repositories.app_repository import AppRepository
 
 
 class SearchShareholderTestCase(unittest.TestCase):
@@ -26,21 +26,21 @@ class SearchShareholderTestCase(unittest.TestCase):
         self.app_context.pop()
 
     def test_search_individuals(self):
-        result = CompanyRepository.search_shareholder(data='John', limit=5, offset=0)
+        result = AppRepository.search_shareholder(data='John', limit=5, offset=0)
         self.assertEqual(len(result['results']), 1)
         self.assertEqual(result['results'][0].first_name, 'John')
 
     def test_search_legal_entities(self):
-        result = CompanyRepository.search_shareholder(data='Acme', limit=5, offset=0)
+        result = AppRepository.search_shareholder(data='Acme', limit=5, offset=0)
         self.assertEqual(len(result['results']), 1)
         self.assertEqual(result['results'][0].name, 'Acme Corp')
 
     def test_search_pagination(self):
-        result = CompanyRepository.search_shareholder(data='', limit=1, offset=0)
+        result = AppRepository.search_shareholder(data='', limit=1, offset=0)
         self.assertEqual(len(result['results']), 1)
         self.assertEqual(result['total'], 4)
 
-        result = CompanyRepository.search_shareholder(data='', limit=1, offset=1)
+        result = AppRepository.search_shareholder(data='', limit=1, offset=1)
         self.assertEqual(len(result['results']), 1)
         self.assertEqual(result['total'], 4)
 

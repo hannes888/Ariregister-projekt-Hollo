@@ -239,7 +239,7 @@
             });
 
             try {
-                const response = await fetch('{{ url_for("company.update_share_amount") }}', {
+                const response = await fetch('{{ url_for("shareholder.update_share_amount") }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

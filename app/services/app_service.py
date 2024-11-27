@@ -1,21 +1,15 @@
-# app/services/company_service.py
-import logging
-from .. import db
-from ..repositories.company_repository import CompanyRepository
-from ..models import Company, Shareholder, Individual, LegalEntity
+from ..repositories.app_repository import AppRepository
+from ..models import Company
 from ..validators import validate_company, validate_shareholder
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 engine = create_engine('postgresql://postgres:docker@flask_db:5432/rik')
 Session = sessionmaker(bind=engine)
 
 
-class CompanyService:
+class AppService:
 
     @staticmethod
     def create_company(data):
@@ -51,24 +45,24 @@ class CompanyService:
             raise ValueError('Total shareholder capital does not match company total capital')
 
         # Add company and shareholders using repository
-        CompanyRepository.add(new_company)
+        AppRepository.add(new_company)
         for shareholder in validated_shareholders:
             shareholder.company_id = new_company.id
-            CompanyRepository.add_shareholder(shareholder)
+            AppRepository.add_shareholder(shareholder)
 
         return new_company
 
     @staticmethod
     def get_company_by_registration_code(registration_code):
-        return CompanyRepository.get_company_by_registration_code(registration_code)
+        return AppRepository.get_company_by_registration_code(registration_code)
 
     @staticmethod
     def get_all_companies():
-        return CompanyRepository.get_all()
+        return AppRepository.get_all()
 
     @staticmethod
     def search_companies(name, registration_code, shareholder_name, shareholder_code, shareholder_type):
-        return CompanyRepository.search_companies(
+        return AppRepository.search_companies(
             name=name,
             registration_code=registration_code,
             shareholder_name=shareholder_name,
@@ -78,7 +72,7 @@ class CompanyService:
 
     @staticmethod
     def search_shareholder(query, limit, offset):
-        return CompanyRepository.search_shareholder(query, limit, offset)
+        return AppRepository.search_shareholder(query, limit, offset)
 
     @staticmethod
     def get_company_details(company_reg_code):
@@ -87,17 +81,17 @@ class CompanyService:
         :param company_reg_code: Company registration code
         :return: Company entity, list of individual shareholders, list of legal entity shareholders
         """
-        company = CompanyRepository.get_company_by_registration_code(company_reg_code)
+        company = AppRepository.get_company_by_registration_code(company_reg_code)
         if not company:
             return None
 
-        shareholders = CompanyRepository.get_company_shareholders(company.id)
+        shareholders = AppRepository.get_company_shareholders(company.id)
         individual_shareholders = []
         legal_entity_shareholders = []
 
         for shareholder in shareholders:
             if shareholder.individual_id:
-                individual = CompanyRepository.get_individual_by_id(shareholder.individual_id)
+                individual = AppRepository.get_individual_by_id(shareholder.individual_id)
                 individual_shareholders.append({
                     'first_name': individual.first_name,
                     'last_name': individual.last_name,
@@ -106,7 +100,7 @@ class CompanyService:
                     'is_founder': shareholder.is_founder
                 })
             elif shareholder.legal_entity_id:
-                legal_entity = CompanyRepository.get_legal_entity_by_id(shareholder.legal_entity_id)
+                legal_entity = AppRepository.get_legal_entity_by_id(shareholder.legal_entity_id)
                 legal_entity_shareholders.append({
                     'name': legal_entity.name,
                     'registration_code': legal_entity.registration_code,
@@ -134,20 +128,18 @@ class CompanyService:
         """
         session = Session()
         try:
-            company = CompanyRepository.get_company_by_registration_code(company_reg_code)
+            company = AppRepository.get_company_by_registration_code(company_reg_code)
             if company is None:
                 raise ValueError('Company not found')
 
             total_capital_increase = 0
 
             for shareholder_data in shareholders_data:
-                logger.error(
-                    f"Updating share amount in service layer for shareholder {shareholder_data['shareholder_code']} with company reg code {company_reg_code}")
                 shareholder_code = shareholder_data['shareholder_code']
                 shareholder_type = shareholder_data['shareholder_type']
-                shareholder_id = CompanyRepository.get_shareholder_id_by_code(company.id, shareholder_code,
-                                                                              shareholder_type,
-                                                                              session)
+                shareholder_id = AppRepository.get_shareholder_id_by_code(company.id, shareholder_code,
+                                                                          shareholder_type,
+                                                                          session)
                 if shareholder_id is None:
                     raise ValueError('Shareholder not found')
 
@@ -158,10 +150,10 @@ class CompanyService:
                 if new_share_amount < current_share_amount:
                     raise ValueError('New share amount cannot be less than current share amount')
 
-                CompanyRepository.update_share_amount(company.id, shareholder_id, new_share_amount, session)
+                AppRepository.update_share_amount(company.id, shareholder_id, new_share_amount, session)
 
             new_total_capital = company.total_capital + total_capital_increase
-            CompanyRepository.update_total_capital(company.id, new_total_capital, session)
+            AppRepository.update_total_capital(company.id, new_total_capital, session)
 
             session.commit()
             return {'message': 'Share amounts updated successfully'}
@@ -186,7 +178,7 @@ class CompanyService:
         session = Session()
         try:
             company_reg_code = data['company_reg_code']
-            company = CompanyRepository.get_company_by_registration_code(company_reg_code)
+            company = AppRepository.get_company_by_registration_code(company_reg_code)
             if not company:
                 raise ValueError('Company not found')
 
@@ -196,29 +188,26 @@ class CompanyService:
             elif shareholder_type == 'legal_entity':
                 shareholder_code = data['registration_code']
                 # Unlike individuals, legal entities can not share the same name
-                existing_legal_entity = CompanyRepository.get_legal_entity_by_registration_code(shareholder_code)
+                existing_legal_entity = AppRepository.get_legal_entity_by_registration_code(shareholder_code)
                 if existing_legal_entity is not None and existing_legal_entity.name != data['name']:
                     raise ValueError('Legal entity with this registration code already exists and has a different name')
             else:
                 raise ValueError('Invalid shareholder type')
 
-            if CompanyRepository.get_shareholder_id_by_code(company.id, shareholder_code, shareholder_type, session) is not None:
-                CompanyRepository.get_shareholder_id_by_code(company.id, shareholder_code, shareholder_type, session)
-                logger.info(f"Shareholder already exists")
+            if AppRepository.get_shareholder_id_by_code(company.id, shareholder_code, shareholder_type, session) is not None:
+                AppRepository.get_shareholder_id_by_code(company.id, shareholder_code, shareholder_type, session)
                 raise ValueError('Shareholder already exists')
 
             new_shareholder = validate_shareholder(data, company, is_founder=False)
-            logger.info(f"Adding shareholder {new_shareholder}")
 
-            CompanyRepository.add_shareholder(new_shareholder)
-            CompanyRepository.update_total_capital(company.id, company.total_capital + new_shareholder.share_amount,
-                                                   session)
+            AppRepository.add_shareholder(new_shareholder)
+            AppRepository.update_total_capital(company.id, company.total_capital + new_shareholder.share_amount,
+                                               session)
 
             session.commit()
             return {'message': 'Shareholder added successfully'}
         except Exception as e:
             session.rollback()
-            logger.error(f"Error adding shareholder: {e}")
             raise e
         finally:
             session.close()
