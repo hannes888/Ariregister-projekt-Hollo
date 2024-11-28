@@ -15,8 +15,20 @@ class AppService:
     def create_company(data):
         """
         Create a new company entity with shareholder entities.
-        :param data:
-        :return:
+
+        Name must be a unique string of 3-100 characters or numbers (including spaces).
+        Registration code must be a unique 7-digit number.
+        Establishment date must be less or equal to the current date and without time.
+        Total capital must be an integer greater or equal to 2500.
+        Total capital must be the sum of all shareholder share amounts.
+        Shareholders added here will be marked as founders.
+
+        Shareholder code (personal code for individuals, registration code for legal entities) must be unique.
+        Shareholder share amount must be an integer greater or equal to 1.
+
+        :param data: dict - Company data
+        :raises ValueError: If the total shareholder capital does not match the company total capital
+        :return: Company - The created company entity
         """
         new_company = Company(
             name=data['name'],
@@ -77,9 +89,11 @@ class AppService:
     @staticmethod
     def get_company_details(company_reg_code):
         """
-        Get company details by registration code
-        :param company_reg_code: Company registration code
-        :return: Company entity, list of individual shareholders, list of legal entity shareholders
+        Get company details by registration code.
+        Shareholders are sorted by share amount in descending order.
+
+        :param company_reg_code: int - Company registration code
+        :return: dict - Company entity, list of individual shareholders, list of legal entity shareholders
         """
         company = AppRepository.get_company_by_registration_code(company_reg_code)
         if not company:
@@ -121,10 +135,15 @@ class AppService:
     @staticmethod
     def update_share_amount(company_reg_code, shareholders_data):
         """
-        Update share amounts for shareholders of a company
-        :param company_reg_code:
-        :param shareholders_data:
-        :return:
+        Update share amounts for shareholders of a company.
+        The new share amount must be greater than or equal to the current share amount.
+        The total capital of the company is updated accordingly.
+
+        :param company_reg_code: int - Company registration code
+        :param shareholders_data: list - List of dictionaries containing shareholder code, shareholder type etc.
+        :raises ValueError: If the company is not found or the shareholder is not found
+        :raises ValueError: If the new share amount is less than the current share amount
+        :return: dict - A message indicating the success of the operation
         """
         session = Session()
         try:
@@ -168,12 +187,13 @@ class AppService:
         """
         Adds a new shareholder to the company.
 
-        :param data: A dictionary containing shareholder details.
-        :type data: dict
-        :raises ValueError: If the company is not found or the shareholder already exists.
-        :raises SQLAlchemyError: If there is an error with the database operation.
-        :return: A message indicating the success of the operation.
-        :rtype: dict
+        :param data: dict - A dictionary containing shareholder details
+        :raises ValueError: If the company is not found or the shareholder already exists
+        :raises ValueError: If the shareholder is a legal entity with matching reg. code and already exists with a different name
+        :raises ValueError: If the shareholder type is invalid
+        :raises ValueError: If the individual or legal entity is already a shareholder in the company
+        :raises SQLAlchemyError: If there is an error with the database operation
+        :return: dict - A message indicating the success of the operation
         """
         session = Session()
         try:

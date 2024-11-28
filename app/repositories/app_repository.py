@@ -35,6 +35,20 @@ class AppRepository:
     @staticmethod
     def search_companies(name=None, registration_code=None, shareholder_name=None, shareholder_code=None,
                          shareholder_type=None):
+        """
+        Search for companies by name, registration code, shareholder name, or shareholder code (personal/registration code).
+        The search parameters can be combined to narrow down the search results.
+        Searching by name implements case-insensitive fragment matching.
+        Searching by any code requires an exact match.
+
+        :param name: str - Company name
+        :param registration_code: int - Company registration code
+        :param shareholder_name: str - Shareholder name
+        :param shareholder_code: int - Shareholder code
+        :param shareholder_type: str - Shareholder type (individual or legal_entity)
+        :return: dict - Matching companies
+        """
+
         query = db.session.query(Company)
 
         if name:
@@ -64,6 +78,17 @@ class AppRepository:
 
     @staticmethod
     def search_shareholder(data=None, limit=5, offset=0):
+        """
+        Search for shareholders by individual first name, last name, or personal code,
+        or legal entity name or registration code.
+        Searching by name implements case-insensitive fragment matching.
+        Searching by personal code or registration code requires an exact match.
+
+        :param data: str - First name, last name, personal code, name, or registration code
+        :param limit: int - Item limit per page
+        :param offset: int - Page offset
+        :return: dict - One page of search results and total result count
+        """
         individual_query = Individual.query.filter(
             (Individual.first_name.ilike(f'%{data}%')) |
             (Individual.last_name.ilike(f'%{data}%')) |
@@ -88,6 +113,15 @@ class AppRepository:
 
     @staticmethod
     def update_share_amount(company_id, shareholder_id, new_share_amount, session):
+        """
+        Update share amount for an existing shareholder.
+
+        :param company_id: int - Company ID
+        :param shareholder_id: int - Shareholder ID
+        :param new_share_amount: int - New share amount
+        :param session: SQLAlchemy session
+        :return: None
+        """
         try:
             shareholder = session.query(Shareholder).filter_by(company_id=company_id, id=shareholder_id).one()
             shareholder.share_amount = new_share_amount
@@ -99,12 +133,14 @@ class AppRepository:
     @staticmethod
     def get_shareholder_id_by_code(company_id, shareholder_code, shareholder_type, session):
         """
-        Get shareholder ID by code that can match either individual personal code or legal entity registration code
-        :param company_id: Company ID
-        :param shareholder_code: Shareholder code
-        :param shareholder_type: Type of shareholder (individual or legal_entity)
-        :param session:
-        :return:
+        Get shareholder ID by code that can match either individual personal code or legal entity registration code.
+        The shareholder must be associated with the specified company.
+
+        :param company_id: int - Company ID
+        :param shareholder_code: int - Shareholder code
+        :param shareholder_type: str - Type of shareholder (individual or legal_entity)
+        :param session: SQLAlchemy session
+        :return: int - Shareholder ID
         """
         if shareholder_type == 'individual':
             individual = session.query(Individual).filter_by(personal_code=shareholder_code).first()

@@ -11,6 +11,16 @@ def index():
 
 @company_bp.route('/view-company/<string:company_reg_code>')
 def view_company(company_reg_code):
+    """
+    View details of a company by its registration code.
+
+    Path Parameters:
+    - company_reg_code (str): The registration code of the company.
+
+    Returns:
+    - HTML response rendering the company details page.
+    - 404 response if the company is not found.
+    """
     company_details = AppService.get_company_details(company_reg_code)
     if not company_details:
         return make_response(jsonify({'message': 'Company not found'}), 404)
@@ -30,6 +40,17 @@ def create_company_form():
 
 @company_bp.route('/create-company', methods=['POST'])
 def create_company():
+    """
+    Create a new company with the provided data.
+
+    Request Body:
+    - data (dict): The data of the company to create.
+
+    Returns:
+    - JSON response indicating the success of the operation and the registration code of the new company.
+    - 400 response if there is a ValueError during creation.
+    - 500 response if there is an unexpected error during creation.
+    """
     try:
         data = request.get_json()
         new_company = AppService.create_company(data)
@@ -44,6 +65,20 @@ def create_company():
 
 @company_bp.route('/search', methods=['GET'])
 def search_companies():
+    """
+    Search for companies based on various parameters.
+
+    Query Parameters:
+    - name (str): The name of the company.
+    - registration_code (str): The registration code of the company.
+    - shareholder_name (str): The name of a shareholder.
+    - shareholder_code (str): The code of a shareholder.
+    - shareholder_type (str): The type of shareholder (individual or legal entity).
+
+    Returns:
+    - JSON response containing the search results.
+    - 500 response if there is an error during the search.
+    """
     try:
         name = request.args.get('name')
         registration_code = request.args.get('registration_code')

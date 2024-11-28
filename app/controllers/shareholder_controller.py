@@ -8,6 +8,17 @@ shareholder_bp = Blueprint('shareholder', __name__)
 
 @shareholder_bp.route('/search-shareholder', methods=['GET'])
 def search_shareholder():
+    """
+    Search for shareholders based on the query parameter.
+
+    Query Parameters:
+    - query (str): The search term for shareholders.
+    - limit (int): The maximum number of results to return (default is 5).
+    - offset (int): The number of results to skip (default is 0).
+
+    Returns:
+    - JSON response containing the search results and total count.
+    """
     try:
         query = request.args.get('query')
         limit = int(request.args.get('limit', 5))
@@ -41,6 +52,16 @@ def search_shareholder():
 
 @shareholder_bp.route('/update-share-amount', methods=['POST'])
 def update_share_amount():
+    """
+    Update the share amounts for shareholders of a company.
+
+    Request Body:
+    - company_reg_code (int): The registration code of the company
+    - shareholders (list): A list of dictionaries containing shareholder data
+
+    Returns:
+    - JSON response indicating the success of the operation.
+    """
     try:
         data = request.get_json()
         company_reg_code = data['company_reg_code']
@@ -56,6 +77,15 @@ def update_share_amount():
 
 @shareholder_bp.route('/add-shareholder', methods=['POST'])
 def add_shareholder():
+    """
+    Add a new shareholder to a company.
+
+    Request Body:
+    - data (dict): The data of the shareholder to add, including company reg. code
+
+    Returns:
+    - JSON response indicating the success of the operation.
+    """
     try:
         data = request.get_json()
         company_reg_code = data['company_reg_code']
