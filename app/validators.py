@@ -1,12 +1,8 @@
-import logging
 import re
 from datetime import datetime, date
 from flask import make_response, jsonify
 from app.extensions import db
 from app.models import Shareholder, Individual, LegalEntity, Company
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 patterns = {
     'company_name': r'[a-zA-Z0-9]{3,100}',
@@ -55,11 +51,28 @@ def validate_registry_number(input_value):
 
 
 def validate_shareholder(shareholder_data, company, is_founder=True):
+    """
+    Validate shareholder data and create a new Shareholder instance.
+
+    Shareholder share amount must be an integer greater than 0.
+    Individual shareholders must have first name, last name, and personal code.
+    Legal entity shareholders must have name and registration code.
+    Shareholder personal code must be a valid Estonian personal ID number.
+    Shareholder registration code must be a valid Estonian registry number.
+    Shareholder registration code must be unique.
+
+    If the shareholder code matches an existing individual or legal entity, the existing instance is used, regardless of the provided name.
+
+    :param shareholder_data: Shareholder data
+    :param company: Company instance
+    :param is_founder: bool - Whether the shareholder is a company founder
+    :raises ValueError: If shareholder type is invalid
+    :return: Shareholder instance
+    """
     if int(shareholder_data.get('share_amount')) < 1:
         return make_response(jsonify({'message': 'Invalid share amount'}), 400)
 
     shareholder_type = shareholder_data.get('shareholder_type')
-    logger.info(f'Validating shareholder: {shareholder_type}')
 
     if shareholder_type == 'individual':
         required_fields = ['first_name', 'last_name', 'personal_code']
@@ -123,14 +136,20 @@ def validate_shareholder(shareholder_data, company, is_founder=True):
 def validate_company(company):
     if not validate_company_name(company.name):
         return make_response(jsonify({'message': 'Invalid company name'}), 400)
+
     if not validate_registration_code(company.registration_code):
         return make_response(jsonify({'message': 'Invalid registration code'}), 400)
+
     if not validate_establishment_date(company.establishment_date):
         return make_response(jsonify({'message': 'Invalid establishment date'}), 400)
+
     if not validate_total_capital(company.total_capital):
         return make_response(jsonify({'message': 'Invalid total capital'}), 400)
+
     if Company.query.filter_by(registration_code=company.registration_code).first():
         return make_response(jsonify({'message': 'Company with this registration code already exists'}), 400)
+
     if Company.query.filter_by(name=company.name).first():
         return make_response(jsonify({'message': 'Company with this name already exists'}), 400)
+
     return make_response(jsonify({'message': 'Company validated'}), 200)

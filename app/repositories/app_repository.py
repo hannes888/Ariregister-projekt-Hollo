@@ -2,9 +2,6 @@ from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
 from ..models import Company, Shareholder, Individual, LegalEntity
 from app.extensions import db
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class AppRepository:
@@ -66,8 +63,10 @@ class AppRepository:
                     for name in shareholder_name_split:
                         if name:
                             query = query.filter(
-                                (Individual.first_name.ilike(f'%{name}%')) |
-                                (Individual.last_name.ilike(f'%{name}%'))
+                                or_(
+                                    Individual.first_name.ilike(f'%{name}%'),
+                                    Individual.last_name.ilike(f'%{name}%')
+                                )
                             )
                 if shareholder_code:
                     query = query.filter(Individual.personal_code == shareholder_code)

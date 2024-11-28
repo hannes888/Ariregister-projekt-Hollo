@@ -1,6 +1,6 @@
 from flask import Flask
 from tenacity import retry, wait_fixed, stop_after_attempt
-import os
+from populate_db_script import populate_db
 from app.controllers import shareholder_controller, company_controller
 from app.extensions import db
 
@@ -13,7 +13,6 @@ def create_app(config_name=None):
         app.config.from_object('config.TestingConfig')
     else:
         app.config.from_object('config.Config')
-    app.config['DEBUG'] = True
     db.init_app(app)
 
     with app.app_context():
@@ -21,11 +20,11 @@ def create_app(config_name=None):
         app.register_blueprint(shareholder_controller.shareholder_bp)
         db.create_all()
 
-        os.system('python populate_db_script.py')
+        populate_db()
 
     return app
 
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0')

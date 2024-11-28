@@ -37,12 +37,10 @@ class AppService:
             total_capital=data['total_capital']
         )
 
-        # Validate company data
         company_validation_response = validate_company(new_company)
         if company_validation_response.status_code != 200:
             return company_validation_response
 
-        # Validate shareholders
         shareholders_data = data.get('shareholders', [])
         validated_shareholders = []
         total_shareholder_capital = 0
@@ -52,11 +50,9 @@ class AppService:
             validated_shareholders.append(validate_shareholder_response)
             total_shareholder_capital += validate_shareholder_response.share_amount
 
-        # Validate total shareholder capital
         if total_shareholder_capital != new_company.total_capital:
             raise ValueError('Total shareholder capital does not match company total capital')
 
-        # Add company and shareholders using repository
         AppRepository.add(new_company)
         for shareholder in validated_shareholders:
             shareholder.company_id = new_company.id
