@@ -1,3 +1,4 @@
+from sqlalchemy import or_
 from sqlalchemy.exc import SQLAlchemyError
 from ..models import Company, Shareholder, Individual, LegalEntity
 from app.extensions import db
@@ -61,10 +62,13 @@ class AppRepository:
             if shareholder_type == 'individual':
                 query = query.join(Individual)
                 if shareholder_name:
-                    query = query.filter(
-                        (Individual.first_name.ilike(f'%{shareholder_name}%')) |
-                        (Individual.last_name.ilike(f'%{shareholder_name}%'))
-                    )
+                    shareholder_name_split = shareholder_name.split(' ')
+                    for name in shareholder_name_split:
+                        if name:
+                            query = query.filter(
+                                (Individual.first_name.ilike(f'%{name}%')) |
+                                (Individual.last_name.ilike(f'%{name}%'))
+                            )
                 if shareholder_code:
                     query = query.filter(Individual.personal_code == shareholder_code)
             elif shareholder_type == 'legal_entity':
@@ -89,14 +93,29 @@ class AppRepository:
         :param offset: int - Page offset
         :return: dict - One page of search results and total result count
         """
-        individual_query = Individual.query.filter(
-            (Individual.first_name.ilike(f'%{data}%')) |
-            (Individual.last_name.ilike(f'%{data}%')) |
-            (Individual.personal_code == data)
-        )
+        data = data.strip()
+        if ' ' in data:
+            first_part, last_part = data.rsplit(' ', 1)
+            individual_query = Individual.query.filter(
+                or_(
+                    Individual.first_name.ilike(f'%{first_part}%'),
+                    Individual.last_name.ilike(f'%{last_part}%')
+                )
+            )
+        else:
+            individual_query = Individual.query.filter(
+                or_(
+                    Individual.first_name.ilike(f'%{data}%'),
+                    Individual.last_name.ilike(f'%{data}%'),
+                    Individual.personal_code == data
+                )
+            )
+
         legal_entity_query = LegalEntity.query.filter(
-            (LegalEntity.name.ilike(f'%{data}%')) |
-            (LegalEntity.registration_code == data)
+            or_(
+                LegalEntity.name.ilike(f'%{data}%'),
+                LegalEntity.registration_code == data
+            )
         )
 
         total_results = legal_entity_query.count() + individual_query.count()

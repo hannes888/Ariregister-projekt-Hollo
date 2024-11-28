@@ -26,7 +26,7 @@
             <span id="total-capital-error" class="error-message"></span><br>
             <button type="submit">Loo osaühing</button>
         </form>
-        <div id="shareholder-form" style="display: none;">
+        <div id="shareholder-form" style="display: none;" class="form-div">
             <h2>Osanike andmed</h2>
             <label for="search_shareholder">Otsi füüsilisi/juriidilisi isikuid:</label>
             <input type="text" id="search_shareholder" name="search_shareholder" placeholder="Sisesta nimi või isiku/registrikood" oninput="searchShareholder()">
@@ -178,9 +178,10 @@
             }
 
             function validateRegistrationCode() {
-                const registrationCode = document.getElementById('registration_code').value;
+                const registrationCode = document.getElementById('registration_code').value.trim();
                 const registrationCodeError = document.getElementById('registration-code-error');
-                if (registrationCode.length !== 7 || isNaN(registrationCode)) {
+                const codeRegex = /^\d{7}$/;
+                if (registrationCode.length !== 7 || isNaN(registrationCode) || !codeRegex.test(registrationCode)) {
                     registrationCodeError.textContent = 'Registration code must be a 7-digit number.';
                 } else {
                     registrationCodeError.textContent = '';
@@ -229,7 +230,7 @@
             }
 
             function validateFirstName() {
-                const firstName = document.getElementById('first_name').value;
+                const firstName = document.getElementById('first_name').value.trim();
                 const firstNameError = document.getElementById('first-name-error');
                 const nameRegex = /^[A-Za-z\s]{1,50}$/;
                 if (!nameRegex.test(firstName)) {
@@ -240,7 +241,7 @@
             }
 
             function validateLastName() {
-                const lastName = document.getElementById('last_name').value;
+                const lastName = document.getElementById('last_name').value.trim();
                 const lastNameError = document.getElementById('last-name-error');
                 const nameRegex = /^[A-Za-z\s]{1,50}$/;
                 if (!nameRegex.test(lastName)) {
@@ -251,7 +252,7 @@
             }
 
             function validatePersonalCode() {
-                const personalCode = document.getElementById('personal_code').value;
+                const personalCode = document.getElementById('personal_code').value.trim();
                 const personalCodeError = document.getElementById('personal-code-error');
                 const codeRegex = /^\d{11}$/;
                 if (!codeRegex.test(personalCode)) {
@@ -262,7 +263,7 @@
             }
 
             function validateEntityName() {
-                const entityName = document.getElementById('entity_name').value;
+                const entityName = document.getElementById('entity_name').value.trim();
                 const entityNameError = document.getElementById('entity-name-error');
                 const nameRegex = /^[A-Za-z\s]{1,50}$/;
                 if (!nameRegex.test(entityName)) {
@@ -273,7 +274,7 @@
             }
 
             function validateEntityRegistrationCode() {
-                const entityRegistrationCode = document.getElementById('entity_registration_code').value;
+                const entityRegistrationCode = document.getElementById('entity_registration_code').value.trim();
                 const entityRegistrationCodeError = document.getElementById('entity-registration-code-error');
                 const codeRegex = /^\d{7}$/;
                 if (!codeRegex.test(entityRegistrationCode)) {
@@ -294,10 +295,13 @@
             }
 
             function validateName() {
-                const name = document.getElementById('name').value;
+                const name = document.getElementById('name').value.trim();
                 const nameError = document.getElementById('name-error');
+                const nameRegex = /^[A-Za-z0-9\s]+$/;
                 if (name.length < 3 || name.length > 100) {
                     nameError.textContent = 'Company name must be at least 3 characters long.';
+                } else if (!nameRegex.test(name)) {
+                    nameError.textContent = 'Company name must contain only letters, numbers, and spaces.';
                 } else {
                     nameError.textContent = '';
                 }
@@ -391,17 +395,17 @@
                 if (shareholderType === 'individual') {
                     shareholders.push({
                         shareholder_type: shareholderType,
-                        first_name: document.getElementById('first_name').value,
-                        last_name: document.getElementById('last_name').value,
-                        personal_code: document.getElementById('personal_code').value,
+                        first_name: document.getElementById('first_name').value.trim(),
+                        last_name: document.getElementById('last_name').value.trim(),
+                        personal_code: document.getElementById('personal_code').value.trim(),
                         share_amount: parseInt(shareAmount, 10),
                         is_founder: true
                     });
                 } else {
                     shareholders.push({
                         shareholder_type: shareholderType,
-                        name: document.getElementById('entity_name').value,
-                        registration_code: document.getElementById('entity_registration_code').value,
+                        name: document.getElementById('entity_name').value.trim(),
+                        registration_code: document.getElementById('entity_registration_code').value.trim(),
                         share_amount: parseInt(shareAmount, 10),
                         is_founder: true
                     });

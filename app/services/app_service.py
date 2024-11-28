@@ -215,7 +215,6 @@ class AppService:
                 raise ValueError('Invalid shareholder type')
 
             if AppRepository.get_shareholder_id_by_code(company.id, shareholder_code, shareholder_type, session) is not None:
-                AppRepository.get_shareholder_id_by_code(company.id, shareholder_code, shareholder_type, session)
                 raise ValueError('Shareholder already exists')
 
             new_shareholder = validate_shareholder(data, company, is_founder=False)

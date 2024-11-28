@@ -286,13 +286,13 @@
             const form = event.target;
             const formData = new FormData(form);
             const data = {
-                company_reg_code: formData.get('company_reg_code'),
+                company_reg_code: formData.get('company_reg_code').trim(),
                 shareholder_type: formData.get('shareholder_type'),
-                first_name: formData.get('first_name'),
-                last_name: formData.get('last_name'),
-                personal_code: formData.get('personal_code'),
-                name: formData.get('name'),
-                registration_code: formData.get('registration_code'),
+                first_name: formData.get('first_name').trim(),
+                last_name: formData.get('last_name').trim(),
+                personal_code: formData.get('personal_code').trim(),
+                name: formData.get('name').trim(),
+                registration_code: formData.get('registration_code').trim(),
                 share_amount: parseInt(formData.get('share_amount'), 10)
             };
 

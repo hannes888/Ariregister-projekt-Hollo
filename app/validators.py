@@ -72,6 +72,10 @@ def validate_shareholder(shareholder_data, company, is_founder=True):
             'last_name': shareholder_data['last_name'],
             'personal_code': shareholder_data['personal_code']
         }
+
+        if not validate_personal_id_number(individual_data['personal_code']):
+            return make_response(jsonify({'message': 'Invalid personal code'}), 400)
+
         individual = Individual.query.filter_by(personal_code=individual_data['personal_code']).first()
         if not individual:
             individual = Individual(**individual_data)
@@ -94,6 +98,10 @@ def validate_shareholder(shareholder_data, company, is_founder=True):
             'name': shareholder_data['name'],
             'registration_code': shareholder_data['registration_code']
         }
+
+        if not validate_registry_number(legal_entity_data['registration_code']):
+            return make_response(jsonify({'message': 'Invalid registration code'}), 400)
+
         legal_entity = LegalEntity.query.filter_by(registration_code=legal_entity_data['registration_code']).first()
         if not legal_entity:
             legal_entity = LegalEntity(**legal_entity_data)

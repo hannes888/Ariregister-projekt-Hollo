@@ -58,9 +58,11 @@ def create_company():
             jsonify({'message': 'Company and shareholders created', 'company_reg_num': new_company.registration_code}),
             201)
     except ValueError as e:
-        return make_response(jsonify({'message': f'Error creating company: {e}'}), 400)
+        app.logger.error(f"ValueError creating company: {e}")
+        return make_response(jsonify({'message': f'Error creating company'}), 400)
     except Exception as e:
-        return make_response(jsonify({'message': f'Unexpected error: {e}'}), 500)
+        app.logger.error(f"Error creating company: {e}")
+        return make_response(jsonify({'message': f'Unexpected error'}), 500)
 
 
 @company_bp.route('/search', methods=['GET'])
