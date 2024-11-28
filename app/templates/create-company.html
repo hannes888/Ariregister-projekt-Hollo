@@ -29,52 +29,52 @@
         <div id="shareholder-form" style="display: none;">
             <h2>Osanike andmed</h2>
             <label for="search_shareholder">Otsi füüsilisi/juriidilisi isikuid:</label>
-            <input type="text" id="search_shareholder" name="search_shareholder" placeholder="Enter name or code" oninput="searchShareholder()">
+            <input type="text" id="search_shareholder" name="search_shareholder" placeholder="Sisesta nimi või isiku/registrikood" oninput="searchShareholder()">
             <div id="pagination-info"></div>
             <div id="search-results"></div>
             <div id="pagination-controls">
-                <button onclick="previousPage()">Previous</button>
-                <button onclick="nextPage()">Next</button>
+                <button onclick="previousPage()">Eelmine</button>
+                <button onclick="nextPage()">Järgmine</button>
             </div>
             <label for="shareholder_type"></label>
             <select id="shareholder_type" name="shareholder_type" required oninput="validateShareholderType()">
-                <option value="" disabled selected>Select Shareholder Type</option>
-                <option value="individual">Individual</option>
-                <option value="legal_entity">Legal Entity</option>
+                <option value="" disabled selected>Osaniku tüüp:</option>
+                <option value="individual">Füüsiline isik</option>
+                <option value="legal_entity">Juriidiline isik</option>
             </select>
             <span id="shareholder-type-error" class="error-message"></span><br>
             <div id="individual-shareholder" style="display: none;">
-                <label for="first_name">First Name:</label>
+                <label for="first_name">Eesnimi:</label>
                 <input type="text" id="first_name" name="first_name" placeholder="Enter first name" oninput="validateFirstName()">
                 <span id="first-name-error" class="error-message"></span><br>
-                <label for="last_name">Last Name:</label>
+                <label for="last_name">Perenimi:</label>
                 <input type="text" id="last_name" name="last_name" placeholder="Enter last name" oninput="validateLastName()">
                 <span id="last-name-error" class="error-message"></span><br>
-                <label for="personal_code">Personal Code:</label>
+                <label for="personal_code">Isikukood:</label>
                 <input type="text" id="personal_code" name="personal_code" placeholder="Enter personal code" oninput="validatePersonalCode()">
                 <span id="personal-code-error" class="error-message"></span><br>
             </div>
             <div id="legal-entity-shareholder" style="display: none;">
-                <label for="entity_name">Entity Name:</label>
+                <label for="entity_name">Nimi:</label>
                 <input type="text" id="entity_name" name="entity_name" placeholder="Enter entity name" oninput="validateEntityName()">
                 <span id="entity-name-error" class="error-message"></span><br>
-                <label for="entity_registration_code">Entity Registration Code:</label>
+                <label for="entity_registration_code">Registrikood:</label>
                 <input type="text" id="entity_registration_code" name="entity_registration_code" placeholder="Enter entity registration code" oninput="validateEntityRegistrationCode()">
                 <span id="entity-registration-code-error" class="error-message"></span><br>
             </div>
-            <label for="share_amount">Share Amount:</label>
-            <input type="number" id="share_amount" name="share_amount" placeholder="Enter share amount" required oninput="validateShareAmount()">
+            <label for="share_amount">Osaluse suurus:</label>
+            <input type="number" id="share_amount" name="share_amount" placeholder="Sisesta osaniku osa suurus" required oninput="validateShareAmount()">
             <span id="share-amount-error" class="error-message"></span><br>
         </div>
-        <button type="button" id="add-shareholder-button" onclick="toggleShareholderForm()">Add Shareholder</button><br>
+        <button type="button" id="add-shareholder-button" onclick="toggleShareholderForm()">Lisa osanik</button><br>
         <div id="individual-shareholders-table" style="display: none;">
-            <h2>Individual Shareholders</h2>
+            <h2>Füüsilised osanikud</h2>
             <table class="styled-table">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Personal Code</th>
-                        <th>Share Amount</th>
+                        <th>Nimi</th>
+                        <th>Isikukood</th>
+                        <th>Osaluse suurus</th>
                     </tr>
                 </thead>
                 <tbody id="individual-shareholders-list">
@@ -82,13 +82,13 @@
             </table>
         </div>
         <div id="legal-entity-shareholders-table" style="display: none;">
-            <h2>Legal Entity Shareholders</h2>
+            <h2>Juriidilised osanikud</h2>
             <table class="styled-table">
                 <thead>
                     <tr>
-                        <th>Entity Name</th>
-                        <th>Registration Code</th>
-                        <th>Share Amount</th>
+                        <th>Nimi</th>
+                        <th>Registrikood</th>
+                        <th>Osaluse suurus</th>
                     </tr>
                 </thead>
                 <tbody id="legal-entity-shareholders-list">
@@ -99,7 +99,7 @@
             <div class="modal-content">
                 <span class="close" onclick="closeModal()">&times;</span>
                 <p id="error-message" class="error-message"></p>
-                <button onclick="closeModal()">Close</button>
+                <button onclick="closeModal()">Sulge</button>
             </div>
         </div>
         <script>
@@ -107,7 +107,7 @@
             const shareholders = [];
 
             let currentPage = 1;
-            const resultsPerPage = 3
+            const resultsPerPage = 5
             let totalPages = 0;
 
             function searchShareholder(page = 1) {
@@ -141,7 +141,7 @@
 
                         const paginationInfo = document.getElementById('pagination-info');
                         totalPages = Math.ceil(data.total / resultsPerPage);
-                        paginationInfo.textContent = `Showing page ${currentPage} of ${totalPages}`;
+                        paginationInfo.textContent = `Lehekülg ${currentPage}/${totalPages}`;
                     });
             }
 

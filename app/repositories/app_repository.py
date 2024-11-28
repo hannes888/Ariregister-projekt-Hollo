@@ -1,6 +1,9 @@
 from sqlalchemy.exc import SQLAlchemyError
 from ..models import Company, Shareholder, Individual, LegalEntity
 from app.extensions import db
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AppRepository:
@@ -72,6 +75,11 @@ class AppRepository:
         )
 
         total_results = legal_entity_query.count() + individual_query.count()
+        logger.info(f"Legal entity count: {legal_entity_query.count()}, Individual count: {individual_query.count()}")
+        for result in individual_query:
+            logger.info(f"Individual: {result.first_name} {result.last_name}")
+        for result in legal_entity_query:
+            logger.info(f"Legal entity: {result.name}")
 
         individual_results = individual_query.limit(limit).offset(offset).all()
         remaining_limit = limit - len(individual_results)

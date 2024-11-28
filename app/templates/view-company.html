@@ -96,7 +96,7 @@
             </div>
             <div class="form-div">
                 <label for="shareholder_type">Osaniku tüüp:</label>
-                <select name="shareholder_type" id="shareholder_type" required>
+                <select name="shareholder_type" id="shareholder_type" required oninput="validateShareholderType()">
                     <option value="" disabled selected>Vali osaniku tüüp</option>
                     <option value="individual">Füüsiline isik</option>
                     <option value="legal_entity">Juriidiline isik</option>
@@ -104,21 +104,21 @@
             </div>
             <div id="individual-shareholder" style="display: none;" class="form-div">
                 <label for="first_name">Eesnimi:</label>
-                <input type="text" id="first_name" name="first_name" placeholder="Sisesta eesnimi">
+                <input type="text" id="first_name" name="first_name" placeholder="Sisesta eesnimi" oninput="validateFirstName()">
                 <label for="last_name">Perenimi:</label>
-                <input type="text" id="last_name" name="last_name" placeholder="Sisesta perenimi">
+                <input type="text" id="last_name" name="last_name" placeholder="Sisesta perenimi" oninput="validateLastName()">
                 <label for="personal_code">Isikukood:</label>
-                <input type="text" id="personal_code" name="personal_code" placeholder="Sisesta isikukood">
+                <input type="text" id="personal_code" name="personal_code" placeholder="Sisesta isikukood" oninput="validatePersonalCode()">
             </div>
             <div id="legal-entity-shareholder" style="display: none;" class="form-div">
                 <label for="name">Nimi:</label>
-                <input type="text" id="name" name="name" placeholder="Sisesta nimi">
+                <input type="text" id="name" name="name" placeholder="Sisesta nimi" oninput="validateEntityName()">
                 <label for="registration_code">Registrikood:</label>
-                <input type="text" id="registration_code" name="registration_code" placeholder="Sisesta registrikood">
+                <input type="text" id="registration_code" name="registration_code" placeholder="Sisesta registrikood" oninput="validateEntityRegistrationCode()">
             </div>
             <div class="form-div">
                 <label for="share_amount">Osaluse suurus:</label>
-                <input type="number" id="share_amount" name="share_amount" placeholder="Sisesta osaniku osa suurus" required>
+                <input type="number" id="share_amount" name="share_amount" placeholder="Sisesta osaniku osa suurus" oninput="validateShareAmount()">
             </div>
             <button type="submit">Lisa uus osanik</button>
         </form>
@@ -166,7 +166,7 @@
 
                     const paginationInfo = document.getElementById('pagination-info');
                     totalPages = Math.ceil(data.total / resultsPerPage);
-                    paginationInfo.textContent = `Showing page ${currentPage} of ${totalPages}`;
+                    paginationInfo.textContent = `Lehekülg ${currentPage}/${totalPages}`;
                 });
         }
 
@@ -318,6 +318,113 @@
         }
 
         document.getElementById('add-shareholder-form').addEventListener('submit', addShareholder);
+
+        function validateShareholderType() {
+                const shareholderType = document.getElementById('shareholder_type').value;
+                const shareholderTypeError = document.getElementById('shareholder-type-error');
+                if (!shareholderType) {
+                    shareholderTypeError.textContent = 'Shareholder type is required.';
+                } else {
+                    shareholderTypeError.textContent = '';
+                }
+            }
+
+            function validateFirstName() {
+                const firstName = document.getElementById('first_name').value;
+                const firstNameError = document.getElementById('first-name-error');
+                const nameRegex = /^[A-Za-z\s]{1,50}$/;
+                if (!nameRegex.test(firstName)) {
+                    firstNameError.textContent = 'First name must contain only letters and spaces, and be 1 to 50 characters long.';
+                } else {
+                    firstNameError.textContent = '';
+                }
+            }
+
+            function validateLastName() {
+                const lastName = document.getElementById('last_name').value;
+                const lastNameError = document.getElementById('last-name-error');
+                const nameRegex = /^[A-Za-z\s]{1,50}$/;
+                if (!nameRegex.test(lastName)) {
+                    lastNameError.textContent = 'Last name must contain only letters and spaces, and be 1 to 50 characters long.';
+                } else {
+                    lastNameError.textContent = '';
+                }
+            }
+
+            function validatePersonalCode() {
+                const personalCode = document.getElementById('personal_code').value;
+                const personalCodeError = document.getElementById('personal-code-error');
+                const codeRegex = /^\d{11}$/;
+                if (!codeRegex.test(personalCode)) {
+                    personalCodeError.textContent = 'Personal code must be exactly 11 numbers.';
+                } else {
+                    personalCodeError.textContent = '';
+                }
+            }
+
+            function validateEntityName() {
+                const entityName = document.getElementById('entity_name').value;
+                const entityNameError = document.getElementById('entity-name-error');
+                const nameRegex = /^[A-Za-z\s]{1,50}$/;
+                if (!nameRegex.test(entityName)) {
+                    entityNameError.textContent = 'Entity name must contain only letters and spaces, and be 1 to 50 characters long.';
+                } else {
+                    entityNameError.textContent = '';
+                }
+            }
+
+            function validateEntityRegistrationCode() {
+                const entityRegistrationCode = document.getElementById('entity_registration_code').value;
+                const entityRegistrationCodeError = document.getElementById('entity-registration-code-error');
+                const codeRegex = /^\d{7}$/;
+                if (!codeRegex.test(entityRegistrationCode)) {
+                    entityRegistrationCodeError.textContent = 'Entity registration code must be exactly 7 numbers.';
+                } else {
+                    entityRegistrationCodeError.textContent = '';
+                }
+            }
+
+            function validateShareAmount() {
+                const shareAmount = document.getElementById('share_amount').value;
+                const shareAmountError = document.getElementById('share-amount-error');
+                if (!Number.isInteger(Number(shareAmount)) || shareAmount < 1) {
+                    shareAmountError.textContent = 'Share amount must be an integer greater than 0.';
+                } else {
+                    shareAmountError.textContent = '';
+                }
+            }
+
+            function validateName() {
+                const name = document.getElementById('name').value;
+                const nameError = document.getElementById('name-error');
+                if (name.length < 3 || name.length > 100) {
+                    nameError.textContent = 'Company name must be at least 3 characters long.';
+                } else {
+                    nameError.textContent = '';
+                }
+            }
+
+            function validateShareholderForm() {
+                validateShareholderType();
+                const shareholderType = document.getElementById('shareholder_type').value;
+                if (shareholderType === 'individual') {
+                    validateFirstName();
+                    validateLastName();
+                    validatePersonalCode();
+                } else if (shareholderType === 'legal_entity') {
+                    validateEntityName();
+                    validateEntityRegistrationCode();
+                }
+                validateShareAmount();
+
+                const errors = document.querySelectorAll('#shareholder-form .error-message');
+                for (let error of errors) {
+                    if (error.textContent) {
+                        return false;
+                    }
+                }
+                return true;
+            }
     </script>
 </body>
 </html>
