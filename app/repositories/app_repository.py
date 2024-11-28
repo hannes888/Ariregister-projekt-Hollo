@@ -75,16 +75,9 @@ class AppRepository:
         )
 
         total_results = legal_entity_query.count() + individual_query.count()
-        logger.info(f"Legal entity count: {legal_entity_query.count()}, Individual count: {individual_query.count()}")
-        for result in individual_query:
-            logger.info(f"Individual: {result.first_name} {result.last_name}")
-        for result in legal_entity_query:
-            logger.info(f"Legal entity: {result.name}")
 
         individual_results = individual_query.limit(limit).offset(offset).all()
         remaining_limit = limit - len(individual_results)
-        logger.info(f"Remaining limit: {remaining_limit}")
-        logger.info(f"Len of individual results: {len(individual_results)}")
         legal_entity_offset = max(0, offset - individual_query.count())
         legal_entity_results = legal_entity_query.limit(remaining_limit).offset(legal_entity_offset).all()
 
