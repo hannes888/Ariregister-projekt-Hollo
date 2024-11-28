@@ -10,24 +10,25 @@
 <body>
     {% include 'navbar.html' %}
     <div class="content">
-        <h1>Company Details</h1>
-        <p>Name: {{ company.name }}</p>
-        <p>Registration Code: {{ company.registration_code }}</p>
-        <p>Establishment Date: {{ company.establishment_date }}</p>
-        <p>Total Capital: {{ company.total_capital }}</p>
+        <h1>Osaühingu andmed</h1>
+        <p>Nimi: {{ company.name }}</p>
+        <p>Registrikood: {{ company.registration_code }}</p>
+        <p>Asutamiskuupäev: {{ company.establishment_date }}</p>
+        <p>Kogukapital: {{ company.total_capital }}</p>
 
-        <h2>Individual Shareholders</h2>
+        <h1>Osanikud</h1>
+        <h2>Füüsilised isikud</h2>
         <form onsubmit="updateShareAmount(event)">
             <input type="hidden" name="registration_code" value="{{ company.registration_code }}">
             <table class="styled-table">
                 <thead>
                 <tr>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Personal Code</th>
-                    <th>Current Share Amount</th>
-                    <th>New Share Amount</th>
-                    <th>Founder</th>
+                    <th>Eesnimi</th>
+                    <th>Perenimi</th>
+                    <th>Isikukood</th>
+                    <th>Osaluse suurus</th>
+                    <th>Muuda osaniku osa</th>
+                    <th>Asutaja</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -38,7 +39,7 @@
                         <td>{{ shareholder.personal_code }}</td>
                         <td>{{ shareholder.share_amount }}</td>
                         <td><input type="number" name="new_share_amount_{{ shareholder.personal_code }}" value="{{ shareholder.share_amount }}" step="1" min="{{ shareholder.share_amount }}"></td>
-                        <td>{{ shareholder.is_founder }}</td>
+                        <td>{{ "Jah" if shareholder.is_founder else "Ei" }}</td>
                         <input type="hidden" name="shareholder_code_{{ shareholder.personal_code }}" value="{{ shareholder.personal_code }}">
                         <input type="hidden" name="shareholder_type_{{ shareholder.personal_code }}" value="individual">
                         <input type="hidden" name="current_share_amount_{{ shareholder.personal_code }}" value="{{ shareholder.share_amount }}">
@@ -46,20 +47,20 @@
                 {% endfor %}
                 </tbody>
             </table>
-            <button type="submit">Save</button>
+            <button type="submit">Salvesta</button>
         </form>
 
-        <h2>Legal Entity Shareholders</h2>
+        <h2>Juriidilised isikud</h2>
         <form onsubmit="updateShareAmount(event)">
             <input type="hidden" name="registration_code" value="{{ company.registration_code }}">
             <table class="styled-table">
                 <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Registration Code</th>
-                    <th>Current Share Amount</th>
-                    <th>New Share Amount</th>
-                    <th>Founder</th>
+                    <th>Nimi</th>
+                    <th>Registrikood</th>
+                    <th>Osaniku osa</th>
+                    <th>Muuda osaluse suurus</th>
+                    <th>Asutaja</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -69,7 +70,7 @@
                         <td>{{ shareholder.registration_code }}</td>
                         <td>{{ shareholder.share_amount }}</td>
                         <td><input type="number" name="new_share_amount_{{ shareholder.registration_code }}" value="{{ shareholder.share_amount }}" step="1" min="{{ shareholder.share_amount }}"></td>
-                        <td>{{ shareholder.is_founder }}</td>
+                        <td>{{ "Jah" if shareholder.is_founder else "Ei" }}</td>
                         <input type="hidden" name="shareholder_code_{{ shareholder.registration_code }}" value="{{ shareholder.registration_code }}">
                         <input type="hidden" name="shareholder_type_{{ shareholder.registration_code }}" value="legal_entity">
                         <input type="hidden" name="current_share_amount_{{ shareholder.registration_code }}" value="{{ shareholder.share_amount }}">
@@ -77,49 +78,49 @@
                 {% endfor %}
                 </tbody>
             </table>
-            <button type="submit">Save</button>
+            <button type="submit">Salvesta</button>
         </form>
 
-        <h3>Add Shareholder</h3>
+        <h3>Lisa osanik</h3>
         <form id="add-shareholder-form" action="/add-shareholder" method="post">
             <input type="hidden" name="company_reg_code" value="{{ company.registration_code }}">
-            <div>
-                <label for="search_shareholder">Search Shareholder:</label>
-                <input type="text" id="search_shareholder" name="search_shareholder" placeholder="Enter name or code" oninput="searchShareholder()">
+            <div class="form-div">
+                <label for="search_shareholder">Otsi isikut:</label>
+                <input type="text" id="search_shareholder" name="search_shareholder" placeholder="Sisesta nimi või isiku/registrikood" oninput="searchShareholder()">
                 <div id="pagination-info"></div>
                 <div id="search-results"></div>
                 <div id="pagination-controls">
-                    <button type="button" onclick="previousPage()">Previous</button>
-                    <button type="button" onclick="nextPage()">Next</button>
+                    <button type="button" onclick="previousPage()">Eelmine</button>
+                    <button type="button" onclick="nextPage()">Järgmine</button>
                 </div>
             </div>
-            <div>
-                <label for="shareholder_type">Shareholder Type:</label>
+            <div class="form-div">
+                <label for="shareholder_type">Osaniku tüüp:</label>
                 <select name="shareholder_type" id="shareholder_type" required>
-                    <option value="" disabled selected>Select Shareholder Type</option>
-                    <option value="individual">Individual</option>
-                    <option value="legal_entity">Legal Entity</option>
+                    <option value="" disabled selected>Vali osaniku tüüp</option>
+                    <option value="individual">Füüsiline isik</option>
+                    <option value="legal_entity">Juriidiline isik</option>
                 </select>
             </div>
-            <div id="individual-shareholder" style="display: none;">
-                <label for="first_name">First Name:</label>
-                <input type="text" id="first_name" name="first_name" placeholder="Enter first name">
-                <label for="last_name">Last Name:</label>
-                <input type="text" id="last_name" name="last_name" placeholder="Enter last name">
-                <label for="personal_code">Personal Code:</label>
-                <input type="text" id="personal_code" name="personal_code" placeholder="Enter personal code">
+            <div id="individual-shareholder" style="display: none;" class="form-div">
+                <label for="first_name">Eesnimi:</label>
+                <input type="text" id="first_name" name="first_name" placeholder="Sisesta eesnimi">
+                <label for="last_name">Perenimi:</label>
+                <input type="text" id="last_name" name="last_name" placeholder="Sisesta perenimi">
+                <label for="personal_code">Isikukood:</label>
+                <input type="text" id="personal_code" name="personal_code" placeholder="Sisesta isikukood">
             </div>
-            <div id="legal-entity-shareholder" style="display: none;">
-                <label for="name">Entity Name:</label>
-                <input type="text" id="name" name="name" placeholder="Enter entity name">
-                <label for="registration_code">Entity Registration Code:</label>
-                <input type="text" id="registration_code" name="registration_code" placeholder="Enter entity registration code">
+            <div id="legal-entity-shareholder" style="display: none;" class="form-div">
+                <label for="name">Nimi:</label>
+                <input type="text" id="name" name="name" placeholder="Sisesta nimi">
+                <label for="registration_code">Registrikood:</label>
+                <input type="text" id="registration_code" name="registration_code" placeholder="Sisesta registrikood">
             </div>
-            <div>
-                <label for="share_amount">Share Amount:</label>
-                <input type="number" id="share_amount" name="share_amount" placeholder="Enter share amount" required>
+            <div class="form-div">
+                <label for="share_amount">Osaluse suurus:</label>
+                <input type="number" id="share_amount" name="share_amount" placeholder="Sisesta osaniku osa suurus" required>
             </div>
-            <button type="submit">Add Shareholder</button>
+            <button type="submit">Lisa uus osanik</button>
         </form>
     </div>
     <div id="error-modal" class="modal">
@@ -131,7 +132,7 @@
     </div>
     <script>
         let currentPage = 1;
-        const resultsPerPage = 3;
+        const resultsPerPage = 5;
         let totalPages = 0;
 
         function searchShareholder(page = 1) {

@@ -10,25 +10,25 @@
 <body>
     {% include 'navbar.html' %}
     <div class="content">
-        <h1>Create Company</h1>
+        <h1>Asuta Osaühing</h1>
         <form id="company-form" onsubmit="submitForm(event)">
-            <label for="name">Company Name:</label>
-            <input type="text" id="name" name="name" placeholder="Enter company name" required oninput="validateName()">
+            <label for="name">Osaühingu nimi:</label>
+            <input type="text" id="name" name="name" placeholder="Sisesta osaühingu nimi" required oninput="validateName()">
             <span id="name-error" class="error-message"></span><br>
-            <label for="registration_code">Registration Code:</label>
-            <input type="text" id="registration_code" name="registration_code" placeholder="Enter registration code" required oninput="validateRegistrationCode()">
+            <label for="registration_code">Registrikood:</label>
+            <input type="text" id="registration_code" name="registration_code" placeholder="Sisesta registrikood" required oninput="validateRegistrationCode()">
             <span id="registration-code-error" class="error-message"></span><br>
-            <label for="establishment_date">Establishment Date:</label>
+            <label for="establishment_date">Asutamiskuupäev:</label>
             <input type="date" id="establishment_date" name="establishment_date" required oninput="validateEstablishmentDate()">
             <span id="establishment-date-error" class="error-message"></span><br>
-            <label for="total_capital">Total Capital:</label>
-            <input type="number" id="total_capital" name="total_capital" placeholder="Enter total capital" required oninput="validateTotalCapital()">
+            <label for="total_capital">Kogukapital:</label>
+            <input type="number" id="total_capital" name="total_capital" placeholder="Sisesta kogukapital" required oninput="validateTotalCapital()">
             <span id="total-capital-error" class="error-message"></span><br>
-            <button type="submit">Create Company</button>
+            <button type="submit">Loo osaühing</button>
         </form>
         <div id="shareholder-form" style="display: none;">
-            <h2>Shareholder Details</h2>
-            <label for="search_shareholder">Search Shareholder:</label>
+            <h2>Osanike andmed</h2>
+            <label for="search_shareholder">Otsi füüsilisi/juriidilisi isikuid:</label>
             <input type="text" id="search_shareholder" name="search_shareholder" placeholder="Enter name or code" oninput="searchShareholder()">
             <div id="pagination-info"></div>
             <div id="search-results"></div>

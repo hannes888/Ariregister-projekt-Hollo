@@ -1,7 +1,7 @@
 <!-- templates/navbar.html -->
 <nav class="navbar">
     {%  if request.endpoint != 'company.create-company' %}
-        <a href="{{ url_for('company.create_company') }}" class="green">Loo osaühing</a>
+        <a href="{{ url_for('company.create_company') }}" class="green">Asuta osaühing</a>
     {% endif %}
     {% if request.endpoint != 'company.index' %}
         <a href="{{ url_for('company.index') }}" class="green">Avaleht</a>

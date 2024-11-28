@@ -89,6 +89,7 @@ button {
     color: white;
     border: none;
     cursor: pointer;
+    margin: 5px 5px 0 5px;
 }
 
 button:hover {
@@ -225,4 +226,13 @@ a {
 
 #pagination-info {
     margin-top: 10px;
+}
+
+#pagination-controls {
+    display: flex;
+    flex-direction: row;
+}
+
+.form-div {
+    min-width: 250px;
 }
